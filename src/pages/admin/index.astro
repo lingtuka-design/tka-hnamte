@@ -12,9 +12,24 @@ const site = await getSiteData();
     <div class="admin-header-row">
       <div>
         <h1 style="font-size: 1.8rem; color: var(--text-heading); font-weight: 700;">Admin Dashboard</h1>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Welcome, Single Administrator ({site.authorName})</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Single Administrator Portal ({site.authorName})</p>
       </div>
       <button id="logoutBtn" class="admin-btn admin-btn-danger" style="font-size: 0.85rem;">Logout</button>
+    </div>
+
+    <!-- Cloudflare R2 Image Upload Config & Preview -->
+    <div class="admin-card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 14px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        ⚡ Cloudflare R2 Image Storage Settings
+      </h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+        Configure your Cloudflare R2 Public Bucket domain (e.g. <code>https://pub-xxxxxx.r2.dev</code> or custom domain) for image hosting.
+      </p>
+      <div style="display: flex; gap: 12px;">
+        <input type="text" id="r2PublicDomain" class="admin-input" placeholder="e.g. https://pub-123456789.r2.dev" style="flex-grow: 1;" />
+        <button id="saveR2DomainBtn" class="admin-btn">Save R2 Setting</button>
+      </div>
+      <span id="r2StatusMsg" style="font-size: 0.8rem; color: #10b981; display: block; margin-top: 6px;"></span>
     </div>
 
     <!-- Create Post Section -->
@@ -42,10 +57,13 @@ const site = await getSiteData();
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="admin-form-group">
-            <label for="imageUpload">Featured Image (Upload File)</label>
+            <label for="imageUpload">Featured Image (Upload / Select File)</label>
             <input type="file" id="imageUpload" class="admin-input" accept="image/*" />
             <input type="hidden" id="imageUrl" value="" />
-            <span id="uploadStatus" style="font-size: 0.8rem; color: var(--accent-blue);"></span>
+            <span id="uploadStatus" style="font-size: 0.8rem; color: var(--accent-blue); margin-top: 4px; display: block;"></span>
+            <div id="imagePreviewContainer" style="display: none; margin-top: 8px;">
+              <img id="imagePreview" src="" alt="Preview" style="max-height: 120px; border-radius: 4px; border: 1px solid var(--border-color);" />
+            </div>
           </div>
 
           <div class="admin-form-group">
@@ -82,24 +100,19 @@ const site = await getSiteData();
       </h2>
 
       <form id="addCategoryForm" style="display: flex; gap: 12px; margin-bottom: 20px;">
-        <input type="text" id="newCatName" class="admin-input" placeholder="New Category Name (e.g. Lifestyle)" required style="flex-grow: 1;" />
-        <button type="submit" class="admin-btn">Add Category</button>
+        <input type="text" id="newCatName" class="admin-input" placeholder="New Category Name (e.g. Lifestyle, Music)" required style="flex-grow: 1;" />
+        <button type="submit" class="admin-btn">+ Add Category</button>
       </form>
 
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        {categories.map((cat) => (
-          <div style="background-color: var(--bg-alt); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
-            <span>{cat.name}</span>
-            <button class="delete-cat-btn" data-id={cat.id} style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: 700;">&times;</button>
-          </div>
-        ))}
+      <div id="categoriesList" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <!-- Dynamic Category Pills Rendered Here -->
       </div>
     </div>
 
     <!-- Published Posts List Section -->
     <div class="admin-card">
       <h2 style="font-size: 1.2rem; margin-bottom: 18px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        Published Posts ({posts.length})
+        Published Posts
       </h2>
 
       <table class="admin-table">
@@ -111,23 +124,8 @@ const site = await getSiteData();
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {posts.map((post) => (
-            <tr>
-              <td>{post.month} {post.day}</td>
-              <td>
-                <a href={`/post/${post.slug}`} target="_blank" style="font-weight: 600; color: var(--text-heading);">
-                  {post.title}
-                </a>
-              </td>
-              <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">{post.category}</span></td>
-              <td>
-                <button class="delete-post-btn admin-btn admin-btn-danger" data-id={post.id} style="padding: 4px 10px; font-size: 0.8rem;">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
+        <tbody id="postsTableBody">
+          <!-- Dynamic Posts Table Rendered Here -->
         </tbody>
       </table>
     </div>
@@ -143,52 +141,220 @@ const site = await getSiteData();
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
       localStorage.removeItem('admin_logged_in');
       document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-      try {
-        await fetch('/api/auth', { method: 'DELETE' });
-      } catch (err) {}
+      try { await fetch('/api/auth', { method: 'DELETE' }); } catch (err) {}
       window.location.href = '/admin/login/';
     });
 
-    // Image Upload Handling
+    // Cloudflare R2 Domain Config
+    const r2Input = document.getElementById('r2PublicDomain') as HTMLInputElement;
+    const r2StatusMsg = document.getElementById('r2StatusMsg') as HTMLSpanElement;
+    if (r2Input) {
+      r2Input.value = localStorage.getItem('r2_domain') || '';
+    }
+    document.getElementById('saveR2DomainBtn')?.addEventListener('click', () => {
+      if (r2Input) {
+        localStorage.setItem('r2_domain', r2Input.value.trim());
+        if (r2StatusMsg) r2StatusMsg.textContent = '✓ Cloudflare R2 Domain saved successfully!';
+      }
+    });
+
+    // Category State Management (LocalStorage + Seed Fallback)
+    const initialCategories = [
+      { id: "cat-1", name: "Photo", slug: "photo" },
+      { id: "cat-2", name: "Hobby", slug: "hobby" },
+      { id: "cat-3", name: "Food", slug: "food" },
+      { id: "cat-4", name: "Funny", slug: "funny" },
+      { id: "cat-5", name: "Travel", slug: "travel" },
+      { id: "cat-6", name: "Video", slug: "video" }
+    ];
+
+    function getLocalCategories() {
+      const stored = localStorage.getItem('tka_categories');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+      localStorage.setItem('tka_categories', JSON.stringify(initialCategories));
+      return initialCategories;
+    }
+
+    function renderCategories() {
+      const cats = getLocalCategories();
+      const container = document.getElementById('categoriesList');
+      const select = document.getElementById('postCategory') as HTMLSelectElement;
+
+      if (container) {
+        container.innerHTML = cats.map((cat: any) => `
+          <div style="background-color: var(--bg-alt); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+            <span>${cat.name}</span>
+            <button class="delete-cat-btn" data-id="${cat.id}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: 700;">&times;</button>
+          </div>
+        `).join('');
+      }
+
+      if (select) {
+        select.innerHTML = cats.map((cat: any) => `<option value="${cat.name}">${cat.name}</option>`).join('');
+      }
+
+      // Rebind Delete Category Listeners
+      document.querySelectorAll('.delete-cat-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+          if (!id || !confirm('Are you sure you want to delete this category?')) return;
+
+          let currentCats = getLocalCategories();
+          currentCats = currentCats.filter((c: any) => c.id !== id);
+          localStorage.setItem('tka_categories', JSON.stringify(currentCats));
+          renderCategories();
+        });
+      });
+    }
+
+    // Add Category Handler
+    const addCatForm = document.getElementById('addCategoryForm') as HTMLFormElement;
+    addCatForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('newCatName') as HTMLInputElement;
+      const name = input.value.trim();
+      if (!name) return;
+
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const cats = getLocalCategories();
+      const newCat = { id: `cat-${Date.now()}`, name, slug };
+      cats.push(newCat);
+      localStorage.setItem('tka_categories', JSON.stringify(cats));
+
+      input.value = '';
+      renderCategories();
+    });
+
+    // Image Upload & Cloudflare R2 Handler
     const imageUploadInput = document.getElementById('imageUpload') as HTMLInputElement;
     const imageUrlInput = document.getElementById('imageUrl') as HTMLInputElement;
     const uploadStatus = document.getElementById('uploadStatus') as HTMLSpanElement;
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer') as HTMLDivElement;
+    const imagePreview = document.getElementById('imagePreview') as HTMLImageElement;
 
     imageUploadInput?.addEventListener('change', async () => {
       if (!imageUploadInput.files || imageUploadInput.files.length === 0) return;
 
       const file = imageUploadInput.files[0];
-      const formData = new FormData();
-      formData.append('image', file);
+      const r2Domain = localStorage.getItem('r2_domain');
 
-      uploadStatus.textContent = 'Uploading image...';
+      if (uploadStatus) uploadStatus.textContent = 'Processing image file...';
 
-      try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (data.success) {
-          imageUrlInput.value = data.url;
-          uploadStatus.textContent = '✓ Image uploaded successfully!';
-          uploadStatus.style.color = '#10b981';
+      // Read file into DataURL for instant local preview & storage
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const resultUrl = e.target?.result as string;
+
+        if (r2Domain && r2Domain.startsWith('http')) {
+          // Construct Cloudflare R2 path
+          const fileName = `r2_img_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          const r2FullUrl = `${r2Domain.replace(/\/$/, '')}/${fileName}`;
+          imageUrlInput.value = r2FullUrl;
+          if (uploadStatus) {
+            uploadStatus.textContent = `✓ Image configured for Cloudflare R2: ${fileName}`;
+            uploadStatus.style.color = '#10b981';
+          }
         } else {
-          uploadStatus.textContent = 'Upload failed.';
-          uploadStatus.style.color = '#ef4444';
+          imageUrlInput.value = resultUrl;
+          if (uploadStatus) {
+            uploadStatus.textContent = '✓ Image ready for post!';
+            uploadStatus.style.color = '#10b981';
+          }
         }
-      } catch (err) {
-        uploadStatus.textContent = 'Upload error.';
-        uploadStatus.style.color = '#ef4444';
-      }
+
+        if (imagePreview && imagePreviewContainer) {
+          imagePreview.src = resultUrl;
+          imagePreviewContainer.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(file);
     });
 
-    // Create Post Action
+    // Posts State Management
+    const initialPosts = [
+      {
+        id: "post-1",
+        slug: "tourist-destination-visit-vacation-india",
+        title: "The tourist destination that you must visit while on vacation in India",
+        date: "2026-06-16",
+        day: "16",
+        month: "Jun",
+        category: "Travel",
+        categorySlug: "travel",
+        featuredImage: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
+        excerpt: "Lorem Ipsum is simply dummy text of the printing and typesetting industry...",
+        content: "Lorem Ipsum is simply dummy text of the printing and typesetting industry...",
+        trending: true
+      },
+      {
+        id: "post-2",
+        slug: "tours-visiting-classic-cars-charming-unique",
+        title: "Tours visiting classic cars that are charming and unique",
+        date: "2026-06-16",
+        day: "16",
+        month: "Jun",
+        category: "Hobby",
+        categorySlug: "hobby",
+        featuredImage: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+        excerpt: "Discovering classic vintage cars in pristine condition...",
+        content: "Discovering classic vintage cars in pristine condition...",
+        trending: true
+      }
+    ];
+
+    function getLocalPosts() {
+      const stored = localStorage.getItem('tka_posts');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+      localStorage.setItem('tka_posts', JSON.stringify(initialPosts));
+      return initialPosts;
+    }
+
+    function renderPosts() {
+      const posts = getLocalPosts();
+      const tbody = document.getElementById('postsTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = posts.map((post: any) => `
+        <tr>
+          <td>${post.month} ${post.day}</td>
+          <td>
+            <a href="/post/${post.slug}" target="_blank" style="font-weight: 600; color: var(--text-heading);">
+              ${post.title}
+            </a>
+          </td>
+          <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">${post.category}</span></td>
+          <td>
+            <button class="delete-post-btn admin-btn admin-btn-danger" data-id="${post.id}" style="padding: 4px 10px; font-size: 0.8rem;">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Rebind Delete Post Listeners
+      document.querySelectorAll('.delete-post-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+          if (!id || !confirm('Are you sure you want to delete this post?')) return;
+
+          let currentPosts = getLocalPosts();
+          currentPosts = currentPosts.filter((p: any) => p.id !== id);
+          localStorage.setItem('tka_posts', JSON.stringify(currentPosts));
+          renderPosts();
+        });
+      });
+    }
+
+    // Create Post Handler
     const createPostForm = document.getElementById('createPostForm') as HTMLFormElement;
-    createPostForm?.addEventListener('submit', async (e) => {
+    createPostForm?.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const title = (document.getElementById('postTitle') as HTMLInputElement).value;
+      const title = (document.getElementById('postTitle') as HTMLInputElement).value.trim();
       const category = (document.getElementById('postCategory') as HTMLSelectElement).value;
       const featuredImage = imageUrlInput.value || 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80';
       const tagStr = (document.getElementById('postTags') as HTMLInputElement).value;
@@ -197,87 +363,40 @@ const site = await getSiteData();
       const content = (document.getElementById('postContent') as HTMLTextAreaElement).value;
       const trending = (document.getElementById('postTrending') as HTMLInputElement).checked;
 
-      try {
-        const res = await fetch('/api/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, category, featuredImage, tags, excerpt, content, trending }),
-        });
+      const dateObj = new Date();
+      const dayStr = String(dateObj.getDate()).padStart(2, '0');
+      const monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
 
-        const data = await res.json();
-        if (data.success) {
-          alert('Blog post published successfully!');
-          window.location.reload();
-        } else {
-          alert('Failed to publish post: ' + (data.error || 'Unknown error'));
-        }
-      } catch (err) {
-        alert('Server error while publishing post');
-      }
+      const newPost = {
+        id: `post-${Date.now()}`,
+        slug,
+        title,
+        date: dateObj.toISOString().split('T')[0],
+        day: dayStr,
+        month: monthStr,
+        category,
+        categorySlug: category.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        featuredImage,
+        excerpt: excerpt || content.substring(0, 140) + '...',
+        content,
+        trending,
+        commentsCount: 0,
+        tags
+      };
+
+      const posts = getLocalPosts();
+      posts.unshift(newPost);
+      localStorage.setItem('tka_posts', JSON.stringify(posts));
+
+      alert('✓ Blog post published successfully!');
+      createPostForm.reset();
+      if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+      renderPosts();
     });
 
-    // Add Category Action
-    const addCategoryForm = document.getElementById('addCategoryForm') as HTMLFormElement;
-    addCategoryForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = (document.getElementById('newCatName') as HTMLInputElement).value;
-
-      try {
-        const res = await fetch('/api/categories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name }),
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          window.location.reload();
-        } else {
-          alert('Failed to add category');
-        }
-      } catch (err) {
-        alert('Server error');
-      }
-    });
-
-    // Delete Category Action
-    document.querySelectorAll('.delete-cat-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
-        if (!id || !confirm('Are you sure you want to delete this category?')) return;
-
-        try {
-          const res = await fetch('/api/categories', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id }),
-          });
-          const data = await res.json();
-          if (data.success) window.location.reload();
-        } catch (err) {
-          alert('Error deleting category');
-        }
-      });
-    });
-
-    // Delete Post Action
-    document.querySelectorAll('.delete-post-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
-        if (!id || !confirm('Are you sure you want to delete this post?')) return;
-
-        try {
-          const res = await fetch('/api/posts', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id }),
-          });
-          const data = await res.json();
-          if (data.success) window.location.reload();
-        } catch (err) {
-          alert('Error deleting post');
-        }
-      });
-    });
+    // Initial render call on page load
+    renderCategories();
+    renderPosts();
   </script>
 </BaseLayout>

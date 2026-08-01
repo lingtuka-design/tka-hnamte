@@ -32,3 +32,24 @@ const currentPath = Astro.url.pathname;
     </button>
   </div>
 </nav>
+
+<script>
+  // Hydrate categories dynamically if modified in Admin
+  const storedCats = localStorage.getItem('tka_categories');
+  if (storedCats) {
+    try {
+      const cats = JSON.parse(storedCats);
+      const navLinks = document.querySelector('.nav-links');
+      if (navLinks && cats.length > 0) {
+        const homeLi = navLinks.querySelector('li:first-child');
+        const adminLi = navLinks.querySelector('li:last-child');
+        const catLis = cats.map((cat: any) => `
+          <li>
+            <a href="/category/${cat.slug}" class="nav-item">${cat.name.toUpperCase()}</a>
+          </li>
+        `).join('');
+        navLinks.innerHTML = `${homeLi?.outerHTML || ''}${catLis}${adminLi?.outerHTML || ''}`;
+      }
+    } catch (e) {}
+  }
+</script>
