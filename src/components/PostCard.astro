@@ -16,13 +16,13 @@ const { post } = Astro.props;
     </div>
     <div class="post-title-link">
       <h2 class="post-title">
-        <a href={`/post/${post.slug}`}>{post.title}</a>
+        <a href={`/post/read?slug=${post.slug}`}>{post.title}</a>
       </h2>
     </div>
   </div>
 
   <div class="post-image-wrap">
-    <a href={`/post/${post.slug}`}>
+    <a href={`/post/read?slug=${post.slug}`}>
       <img src={post.featuredImage} alt={post.title} loading="lazy" />
     </a>
   </div>
@@ -32,7 +32,7 @@ const { post } = Astro.props;
   </p>
 
   <div class="post-footer">
-    <a href={`/post/${post.slug}`} class="read-more">
+    <a href={`/post/read?slug=${post.slug}`} class="read-more">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>

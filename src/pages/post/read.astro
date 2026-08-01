@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getPosts, getSiteData } from '../../lib/data';
+
+const posts = await getPosts();
+const site = await getSiteData();
+const defaultPost = posts[0] || {
+  title: "Article View",
+  day: "16",
+  month: "Jun",
+  category: "General",
+  categorySlug: "general",
+  featuredImage: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
+  content: "Loading article content...",
+  excerpt: "Article detail view",
+  tags: ["Blog"]
+};
+---
+
+<BaseLayout title={`${defaultPost.title} - ṬKA Hnamte`} description={defaultPost.excerpt}>
+  <div class="main-layout">
+    <article class="single-post" id="singlePostContainer">
+      <header class="single-post-header" style="margin-bottom: 25px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <span id="postDateBadge" class="date-badge" style="width: auto; height: auto; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">
+            {defaultPost.day} {defaultPost.month}
+          </span>
+          <a id="postCategoryLink" href={`/category/${defaultPost.categorySlug}`} style="font-size: 0.85rem; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">
+            {defaultPost.category}
+          </a>
+        </div>
+        <h1 id="postTitleHeading" style="font-size: 2.2rem; font-weight: 700; color: var(--text-heading); line-height: 1.3;">
+          {defaultPost.title}
+        </h1>
+      </header>
+
+      <div class="post-image-wrap" style="margin-bottom: 30px;">
+        <img id="postFeaturedImg" src={defaultPost.featuredImage} alt={defaultPost.title} style="border-radius: 6px; width: 100%; max-height: 500px; object-fit: cover;" />
+      </div>
+
+      <div id="postBodyContent" class="post-content" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main); margin-bottom: 40px; white-space: pre-line;">
+        {defaultPost.content}
+      </div>
+
+      <div id="postTagsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
+        <strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong>
+        {defaultPost.tags && defaultPost.tags.map((tag) => (
+          <span style="background-color: var(--bg-alt); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-color);">
+            #{tag}
+          </span>
+        ))}
+      </div>
+
+      <!-- Comments Section Placeholder -->
+      <section style="background-color: var(--bg-alt); padding: 24px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <h3 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--text-heading);">Comments</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">No comments yet. Be the first to share your thoughts!</p>
+      </section>
+    </article>
+
+    <Sidebar />
+  </div>
+</BaseLayout>
+
+<script>
+  // Dynamic client-side reader script
+  const urlParams = new URLSearchParams(window.location.search);
+  const slug = urlParams.get('slug');
+
+  const seedPosts = [
+    {
+      id: "post-1",
+      slug: "tourist-destination-visit-vacation-india",
+      title: "The tourist destination that you must visit while on vacation in India",
+      date: "2026-06-16", day: "16", month: "Jun",
+      category: "Travel", categorySlug: "travel",
+      featuredImage: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
+      excerpt: "Lorem Ipsum is simply dummy text of the printing and typesetting industry...",
+      content: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n### Why India Should Be On Your Bucket List\nFrom the majesty of historic architecture to the vibrant culture and serene mountain peaks, traveling across India provides an unforgettable experience for every photography and culture enthusiast.",
+      tags: ["India", "Vacation", "Travel", "Photography"]
+    },
+    {
+      id: "post-2",
+      slug: "tours-visiting-classic-cars-charming-unique",
+      title: "Tours visiting classic cars that are charming and unique",
+      date: "2026-06-16", day: "16", month: "Jun",
+      category: "Hobby", categorySlug: "hobby",
+      featuredImage: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+      excerpt: "Discovering classic vintage cars in pristine condition...",
+      content: "Discovering classic vintage cars in pristine condition is a true joy for hobbyists and collectors around the world.\n\nClassic automobiles represent an era of distinct design craftsmanship and mechanical beauty.",
+      tags: ["Cars", "Vintage", "Hobby"]
+    }
+  ];
+
+  function getCombinedPosts() {
+    const stored = localStorage.getItem('tka_posts');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return seedPosts;
+  }
+
+  if (slug) {
+    const allPosts = getCombinedPosts();
+    const match = allPosts.find((p: any) => p.slug === slug || p.id === slug);
+
+    if (match) {
+      document.title = `${match.title} - ṬKA Hnamte`;
+      
+      const titleEl = document.getElementById('postTitleHeading');
+      const contentEl = document.getElementById('postBodyContent');
+      const imgEl = document.getElementById('postFeaturedImg') as HTMLImageElement;
+      const dateEl = document.getElementById('postDateBadge');
+      const catLink = document.getElementById('postCategoryLink') as HTMLAnchorElement;
+      const tagsContainer = document.getElementById('postTagsContainer');
+
+      if (titleEl) titleEl.textContent = match.title;
+      if (contentEl) contentEl.textContent = match.content || match.excerpt || '';
+      if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
+      if (dateEl) dateEl.textContent = `${match.day || '16'} ${match.month || 'Jun'}`;
+      if (catLink) {
+        catLink.textContent = match.category || 'General';
+        catLink.href = `/category/${match.categorySlug || 'general'}`;
+      }
+
+      if (tagsContainer && match.tags && match.tags.length > 0) {
+        tagsContainer.innerHTML = `<strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong> ` +
+          match.tags.map((t: string) => `<span style="background-color: var(--bg-alt); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-color);">#${t}</span>`).join(' ');
+      }
+    }
+  }
+</script>
