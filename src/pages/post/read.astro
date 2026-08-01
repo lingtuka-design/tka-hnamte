@@ -110,6 +110,10 @@ const defaultPost = posts[0] || {
 
     if (match) {
       document.title = `${match.title} - ṬKA Hnamte`;
+
+      // Increment view count for Most Read ranking
+      match.views = (match.views || 0) + 1;
+      localStorage.setItem('tka_posts', JSON.stringify(allPosts));
       
       const titleEl = document.getElementById('postTitleHeading');
       const contentEl = document.getElementById('postBodyContent');

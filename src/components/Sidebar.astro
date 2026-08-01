@@ -1,9 +1,8 @@
 ---
-import { getSiteData, getTrendingPosts, getGallery } from '../lib/data';
+import { getSiteData, getTrendingPosts } from '../lib/data';
 
 const site = await getSiteData();
-const trendingPosts = await getTrendingPosts();
-const gallery = await getGallery();
+const initialMostRead = await getTrendingPosts();
 ---
 
 <aside class="sidebar">
@@ -31,37 +30,48 @@ const gallery = await getGallery();
     </div>
   </div>
 
-  <!-- Trending Widget -->
+  <!-- Most Read Widget (Formerly Trending) -->
   <div class="widget">
     <div class="widget-title-wrap">
-      <h3 class="widget-title">Trending</h3>
+      <h3 class="widget-title">Most Read</h3>
       <div class="widget-dash-line"></div>
     </div>
-    <div class="trending-list">
-      {trendingPosts.map((post) => (
+    <div class="trending-list" id="mostReadListContainer">
+      {initialMostRead.map((post) => (
         <div class="trending-item">
           <img src={post.featuredImage} alt={post.title} class="trending-thumb" />
           <div class="trending-info">
             <a href={`/post/read?slug=${post.slug}`} class="trending-item-title">{post.title}</a>
-            <span class="trending-item-date">{post.month} {post.day}, 2026</span>
+            <span class="trending-item-date">{post.views || 0} views • {post.month} {post.day}</span>
           </div>
         </div>
       ))}
     </div>
   </div>
-
-  <!-- Gallery Widget -->
-  <div class="widget">
-    <div class="widget-title-wrap">
-      <h3 class="widget-title">Gallery</h3>
-      <div class="widget-dash-line"></div>
-    </div>
-    <div class="gallery-grid">
-      {gallery.map((item) => (
-        <div class="gallery-item">
-          <img src={item.url} alt={item.title} title={item.title} loading="lazy" />
-        </div>
-      ))}
-    </div>
-  </div>
 </aside>
+
+<script>
+  // Dynamic Most Read List ordered by highest view counts
+  const storedPosts = localStorage.getItem('tka_posts');
+  if (storedPosts) {
+    try {
+      const posts = JSON.parse(storedPosts);
+      const container = document.getElementById('mostReadListContainer');
+
+      if (container && Array.isArray(posts) && posts.length > 0) {
+        // Sort by view count descending
+        const sorted = [...posts].sort((a: any, b: any) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+
+        container.innerHTML = sorted.map((post: any) => `
+          <div class="trending-item">
+            <img src="${post.featuredImage}" alt="${post.title}" class="trending-thumb" />
+            <div class="trending-info">
+              <a href="/post/read?slug=${post.slug}" class="trending-item-title">${post.title}</a>
+              <span class="trending-item-date">${post.views || 0} views • ${post.month} ${post.day}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (e) {}
+  }
+</script>
