@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getPosts, getCategories } from '../../lib/data';
+
+export async function getStaticPaths() {
+  const categories = await getCategories();
+  return categories.map(cat => ({
+    params: { category: cat.slug }
+  }));
+}
+
+const { category } = Astro.params;
+const categories = await getCategories();
+const matchedCat = categories.find(c => c.slug === category || c.name.toLowerCase() === category?.toLowerCase());
+
+const categoryName = matchedCat ? matchedCat.name : category || 'Category';
+const posts = await getPosts();
+const filteredPosts = posts.filter(
+  p => p.categorySlug === category || p.category.toLowerCase() === category?.toLowerCase()
+);
+---
+
+<BaseLayout title={`Category: ${categoryName} - ṬKA Hnamte`}>
+  <div class="main-layout">
+    <section class="posts-feed">
+      <div style="margin-bottom: 25px; padding-bottom: 12px; border-bottom: 2px solid var(--accent-blue);">
+        <h1 style="font-size: 1.5rem; color: var(--text-heading); font-weight: 700; text-transform: uppercase;">
+          Category: {categoryName}
+        </h1>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Showing all posts filed under {categoryName}</p>
+      </div>
+
+      {filteredPosts.length > 0 ? (
+        filteredPosts.map((post) => <PostCard post={post} />)
+      ) : (
+        <div style="padding: 40px 0; text-align: center;">
+          <p>No posts found in category "{categoryName}".</p>
+        </div>
+      )}
+    </section>
+
+    <Sidebar />
+  </div>
+</BaseLayout>

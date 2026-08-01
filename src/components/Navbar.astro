@@ -1,0 +1,34 @@
+---
+import { getCategories } from '../lib/data';
+
+const categories = await getCategories();
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="nav-bar">
+  <div class="nav-container">
+    <ul class="nav-links">
+      <li>
+        <a href="/" class={`nav-item ${currentPath === '/' ? 'active' : ''}`}>HOME</a>
+      </li>
+      {categories.map((cat) => (
+        <li>
+          <a
+            href={`/category/${cat.slug}`}
+            class={`nav-item ${currentPath === `/category/${cat.slug}` ? 'active' : ''}`}
+          >
+            {cat.name.toUpperCase()}
+          </a>
+        </li>
+      ))}
+      <li>
+        <a href="/admin" class="nav-item" style="color: var(--accent-blue);">ADMIN</a>
+      </li>
+    </ul>
+
+    <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle dark mode">
+      <span class="theme-icon">🌙</span>
+      <span>Theme</span>
+    </button>
+  </div>
+</nav>

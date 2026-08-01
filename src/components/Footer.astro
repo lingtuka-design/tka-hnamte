@@ -1,0 +1,17 @@
+---
+import { getSiteData } from '../lib/data';
+
+const site = await getSiteData();
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>&copy; {year} {site.title}. All rights reserved.</p>
+    <p>
+      <a href="/rss.xml" style="margin-right: 12px;">RSS Feed</a>
+      <span>|</span>
+      <a href="/admin" class="footer-admin-link" style="margin-left: 12px;">Admin Dashboard</a>
+    </p>
+  </div>
+</footer>

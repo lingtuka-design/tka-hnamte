@@ -1,0 +1,183 @@
+{
+  "site": {
+    "title": "ṬKA HNAMTE",
+    "logoText": "ṬKA HNAMTE",
+    "tagline": "Personal Blog & Thoughts",
+    "authorName": "ṬKA HNAMTE",
+    "bio": "Ka chanchin sawi vak tur a awm mang lo hle a, Football hi ka ngaina viau a, a bik takin Arsenal inkhel hi ka en peih lehzual a. Tun thlengin 1980's Rock Music kha ka la tuipui deuh ber. Fiamthu ka duh hle a, inhmuamup hi ka peih zawng a ni lem lo.",
+    "avatarUrl": "/images/tka_hnamte.jpg",
+    "social": {
+      "facebook": "https://facebook.com",
+      "twitter": "https://twitter.com",
+      "instagram": "https://instagram.com",
+      "linkedin": "https://linkedin.com",
+      "youtube": "https://youtube.com"
+    }
+  },
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Photo",
+      "slug": "photo"
+    },
+    {
+      "id": "cat-2",
+      "name": "Hobby",
+      "slug": "hobby"
+    },
+    {
+      "id": "cat-3",
+      "name": "Food",
+      "slug": "food"
+    }
+  ],
+  "posts": [
+    {
+      "id": "post-1",
+      "slug": "tourist-destination-visit-vacation-india",
+      "title": "The tourist destination that you must visit while on vacation in India",
+      "date": "2026-06-16",
+      "day": "16",
+      "month": "Jun",
+      "category": "Travel",
+      "categorySlug": "travel",
+      "featuredImage": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
+      "excerpt": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into...",
+      "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n### Why India Should Be On Your Bucket List\nFrom the majesty of historic architecture to the vibrant culture and serene mountain peaks, traveling across India provides an unforgettable experience for every photography and culture enthusiast. Whether you are exploring ancient heritage sites or capturing the industrious spirit of local workshops, every corner tells a compelling story.",
+      "trending": true,
+      "commentsCount": 0,
+      "tags": [
+        "India",
+        "Vacation",
+        "Travel",
+        "Photography"
+      ]
+    },
+    {
+      "id": "post-2",
+      "slug": "tours-visiting-classic-cars-charming-unique",
+      "title": "Tours visiting classic cars that are charming and unique",
+      "date": "2026-06-16",
+      "day": "16",
+      "month": "Jun",
+      "category": "Hobby",
+      "categorySlug": "hobby",
+      "featuredImage": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+      "excerpt": "Discovering classic vintage cars in pristine condition is a true joy for hobbyists and collectors around the world. Here are our top vintage automotive destinations and tours...",
+      "content": "Discovering classic vintage cars in pristine condition is a true joy for hobbyists and collectors around the world. Here are our top vintage automotive destinations and tours.\n\nClassic automobiles represent an era of distinct design craftsmanship and mechanical beauty. Exploring curated classic car shows and private restoration garages offers rare insights into vintage motor history.",
+      "trending": true,
+      "commentsCount": 0,
+      "tags": [
+        "Cars",
+        "Vintage",
+        "Hobby"
+      ]
+    },
+    {
+      "id": "post-3",
+      "slug": "nyc-parks-commissioner-experience-of-place",
+      "title": "The N.Y.C. Parks Commissioner on the Experience of Place",
+      "date": "2026-06-16",
+      "day": "16",
+      "month": "Jun",
+      "category": "Photo",
+      "categorySlug": "photo",
+      "featuredImage": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=600&q=80",
+      "excerpt": "An insightful discussion on urban greenery, public spaces, and the architecture of community parks in modern metropolises.",
+      "content": "An insightful discussion on urban greenery, public spaces, and the architecture of community parks in modern metropolises.",
+      "trending": true,
+      "commentsCount": 2,
+      "tags": [
+        "NYC",
+        "Parks",
+        "Urban"
+      ]
+    },
+    {
+      "id": "post-4",
+      "slug": "village-in-india-clean-living-attraction",
+      "title": "A Village In India Where Clean Living Became a Attraction",
+      "date": "2026-06-16",
+      "day": "16",
+      "month": "Jun",
+      "category": "Travel",
+      "categorySlug": "travel",
+      "featuredImage": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80",
+      "excerpt": "Inside the cleanest village in Asia, where eco-conscious living and sustainable tourism go hand in hand.",
+      "content": "Inside the cleanest village in Asia, where eco-conscious living and sustainable tourism go hand in hand.",
+      "trending": true,
+      "commentsCount": 1,
+      "tags": [
+        "Village",
+        "Clean",
+        "Nature"
+      ]
+    },
+    {
+      "id": "post-5",
+      "slug": "seeing-beauty-of-mountains-from-clouds",
+      "title": "Seeing the beauty of the mountains from the clouds",
+      "date": "2026-06-16",
+      "day": "16",
+      "month": "Jun",
+      "category": "Photo",
+      "categorySlug": "photo",
+      "featuredImage": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=600&q=80",
+      "excerpt": "High altitude photography capturing mountain mist, sunrise peaks, and atmospheric cloud inversions.",
+      "content": "High altitude photography capturing mountain mist, sunrise peaks, and atmospheric cloud inversions.",
+      "trending": true,
+      "commentsCount": 0,
+      "tags": [
+        "Mountains",
+        "Landscape",
+        "Clouds"
+      ]
+    },
+    {
+      "id": "post-6",
+      "slug": "enjoy-holidays-with-friends-and-relatives",
+      "title": "Enjoy the holidays with friends and relatives",
+      "date": "2026-06-16",
+      "day": "16",
+      "month": "Jun",
+      "category": "Food",
+      "categorySlug": "food",
+      "featuredImage": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+      "excerpt": "Making memories during vacation gatherings with delicious home-cooked feasts and seaside leisure.",
+      "content": "Making memories during vacation gatherings with delicious home-cooked feasts and seaside leisure.",
+      "trending": true,
+      "commentsCount": 4,
+      "tags": [
+        "Holiday",
+        "Friends",
+        "Food"
+      ]
+    }
+  ],
+  "gallery": [
+    {
+      "id": "g-1",
+      "title": "Travel Luggage",
+      "url": "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": "g-2",
+      "title": "Mountain View",
+      "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": "g-3",
+      "title": "Craftsman",
+      "url": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": "g-4",
+      "title": "Classic Motorcycle",
+      "url": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=300&q=80"
+    }
+  ],
+  "admin": {
+    "username": "admin",
+    "password": "adminpassword123"
+  }
+}

@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getPosts, getSiteData } from '../lib/data';
+
+const posts = await getPosts();
+const site = await getSiteData();
+---
+
+<BaseLayout title={`${site.title} - ${site.tagline}`} description={site.bio}>
+  <div class="main-layout">
+    <section class="posts-feed">
+      {posts.length > 0 ? (
+        posts.map((post) => <PostCard post={post} />)
+      ) : (
+        <div style="padding: 40px 0; text-align: center;">
+          <p>No blog posts published yet.</p>
+        </div>
+      )}
+    </section>
+
+    <Sidebar />
+  </div>
+</BaseLayout>

@@ -1,0 +1,283 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, getCategories, getSiteData } from '../../lib/data';
+
+const posts = await getPosts();
+const categories = await getCategories();
+const site = await getSiteData();
+---
+
+<BaseLayout title="Admin Dashboard - Manage Blog">
+  <div class="admin-container">
+    <div class="admin-header-row">
+      <div>
+        <h1 style="font-size: 1.8rem; color: var(--text-heading); font-weight: 700;">Admin Dashboard</h1>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Welcome, Single Administrator ({site.authorName})</p>
+      </div>
+      <button id="logoutBtn" class="admin-btn admin-btn-danger" style="font-size: 0.85rem;">Logout</button>
+    </div>
+
+    <!-- Create Post Section -->
+    <div class="admin-card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 18px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        Publish New Blog Post
+      </h2>
+
+      <form id="createPostForm">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="admin-form-group">
+            <label for="postTitle">Post Title *</label>
+            <input type="text" id="postTitle" class="admin-input" placeholder="e.g. Vacation in Mizoram..." required />
+          </div>
+
+          <div class="admin-form-group">
+            <label for="postCategory">Category *</label>
+            <select id="postCategory" class="admin-select" required>
+              {categories.map((cat) => (
+                <option value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="admin-form-group">
+            <label for="imageUpload">Featured Image (Upload File)</label>
+            <input type="file" id="imageUpload" class="admin-input" accept="image/*" />
+            <input type="hidden" id="imageUrl" value="" />
+            <span id="uploadStatus" style="font-size: 0.8rem; color: var(--accent-blue);"></span>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="postTags">Tags (comma separated)</label>
+            <input type="text" id="postTags" class="admin-input" placeholder="Travel, Photography, Mizo" />
+          </div>
+        </div>
+
+        <div class="admin-form-group">
+          <label for="postExcerpt">Short Excerpt / Summary</label>
+          <input type="text" id="postExcerpt" class="admin-input" placeholder="Brief 1-2 sentence preview..." />
+        </div>
+
+        <div class="admin-form-group">
+          <label for="postContent">Post Content (Markdown or Text) *</label>
+          <textarea id="postContent" class="admin-textarea" rows="8" placeholder="Write your full post content here..." required></textarea>
+        </div>
+
+        <div class="admin-form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="postTrending" style="width: auto;" />
+          <label for="postTrending" style="margin-bottom: 0; text-transform: none;">Pin to Sidebar Trending Widget</label>
+        </div>
+
+        <button type="submit" id="savePostBtn" class="admin-btn" style="margin-top: 10px;">
+          Publish Post Now
+        </button>
+      </form>
+    </div>
+
+    <!-- Category Manager Section -->
+    <div class="admin-card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 18px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        Manage Categories
+      </h2>
+
+      <form id="addCategoryForm" style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <input type="text" id="newCatName" class="admin-input" placeholder="New Category Name (e.g. Lifestyle)" required style="flex-grow: 1;" />
+        <button type="submit" class="admin-btn">Add Category</button>
+      </form>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        {categories.map((cat) => (
+          <div style="background-color: var(--bg-alt); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+            <span>{cat.name}</span>
+            <button class="delete-cat-btn" data-id={cat.id} style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: 700;">&times;</button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Published Posts List Section -->
+    <div class="admin-card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 18px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        Published Posts ({posts.length})
+      </h2>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map((post) => (
+            <tr>
+              <td>{post.month} {post.day}</td>
+              <td>
+                <a href={`/post/${post.slug}`} target="_blank" style="font-weight: 600; color: var(--text-heading);">
+                  {post.title}
+                </a>
+              </td>
+              <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">{post.category}</span></td>
+              <td>
+                <button class="delete-post-btn admin-btn admin-btn-danger" data-id={post.id} style="padding: 4px 10px; font-size: 0.8rem;">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Client-side authentication check
+    if (localStorage.getItem('admin_logged_in') !== 'true' && !document.cookie.includes('admin_session=')) {
+      window.location.href = '/admin/login/';
+    }
+
+    // Logout Action
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      localStorage.removeItem('admin_logged_in');
+      document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      try {
+        await fetch('/api/auth', { method: 'DELETE' });
+      } catch (err) {}
+      window.location.href = '/admin/login/';
+    });
+
+    // Image Upload Handling
+    const imageUploadInput = document.getElementById('imageUpload') as HTMLInputElement;
+    const imageUrlInput = document.getElementById('imageUrl') as HTMLInputElement;
+    const uploadStatus = document.getElementById('uploadStatus') as HTMLSpanElement;
+
+    imageUploadInput?.addEventListener('change', async () => {
+      if (!imageUploadInput.files || imageUploadInput.files.length === 0) return;
+
+      const file = imageUploadInput.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+
+      uploadStatus.textContent = 'Uploading image...';
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          imageUrlInput.value = data.url;
+          uploadStatus.textContent = '✓ Image uploaded successfully!';
+          uploadStatus.style.color = '#10b981';
+        } else {
+          uploadStatus.textContent = 'Upload failed.';
+          uploadStatus.style.color = '#ef4444';
+        }
+      } catch (err) {
+        uploadStatus.textContent = 'Upload error.';
+        uploadStatus.style.color = '#ef4444';
+      }
+    });
+
+    // Create Post Action
+    const createPostForm = document.getElementById('createPostForm') as HTMLFormElement;
+    createPostForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const title = (document.getElementById('postTitle') as HTMLInputElement).value;
+      const category = (document.getElementById('postCategory') as HTMLSelectElement).value;
+      const featuredImage = imageUrlInput.value || 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80';
+      const tagStr = (document.getElementById('postTags') as HTMLInputElement).value;
+      const tags = tagStr.split(',').map(t => t.trim()).filter(Boolean);
+      const excerpt = (document.getElementById('postExcerpt') as HTMLInputElement).value;
+      const content = (document.getElementById('postContent') as HTMLTextAreaElement).value;
+      const trending = (document.getElementById('postTrending') as HTMLInputElement).checked;
+
+      try {
+        const res = await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, category, featuredImage, tags, excerpt, content, trending }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert('Blog post published successfully!');
+          window.location.reload();
+        } else {
+          alert('Failed to publish post: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Server error while publishing post');
+      }
+    });
+
+    // Add Category Action
+    const addCategoryForm = document.getElementById('addCategoryForm') as HTMLFormElement;
+    addCategoryForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = (document.getElementById('newCatName') as HTMLInputElement).value;
+
+      try {
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert('Failed to add category');
+        }
+      } catch (err) {
+        alert('Server error');
+      }
+    });
+
+    // Delete Category Action
+    document.querySelectorAll('.delete-cat-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+        if (!id || !confirm('Are you sure you want to delete this category?')) return;
+
+        try {
+          const res = await fetch('/api/categories', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+          });
+          const data = await res.json();
+          if (data.success) window.location.reload();
+        } catch (err) {
+          alert('Error deleting category');
+        }
+      });
+    });
+
+    // Delete Post Action
+    document.querySelectorAll('.delete-post-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+        if (!id || !confirm('Are you sure you want to delete this post?')) return;
+
+        try {
+          const res = await fetch('/api/posts', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+          });
+          const data = await res.json();
+          if (data.success) window.location.reload();
+        } catch (err) {
+          alert('Error deleting post');
+        }
+      });
+    });
+  </script>
+</BaseLayout>
