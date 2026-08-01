@@ -66,3 +66,27 @@ if (!post) {
     <Sidebar />
   </div>
 </BaseLayout>
+
+<script>
+  // Hydrate single post dynamically if created in client admin
+  const pathParts = window.location.pathname.split('/');
+  const slug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+  const storedPosts = localStorage.getItem('tka_posts');
+  if (storedPosts && slug) {
+    try {
+      const posts = JSON.parse(storedPosts);
+      const match = posts.find((p: any) => p.slug === slug);
+      if (match) {
+        const titleEl = document.querySelector('.single-post-header h1');
+        const contentEl = document.querySelector('.post-content');
+        const imgEl = document.querySelector('.post-image-wrap img') as HTMLImageElement;
+        const dateBadge = document.querySelector('.date-badge');
+
+        if (titleEl) titleEl.textContent = match.title;
+        if (contentEl) contentEl.textContent = match.content;
+        if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
+        if (dateBadge) dateBadge.textContent = `${match.day} ${match.month}`;
+      }
+    } catch (e) {}
+  }
+</script>
