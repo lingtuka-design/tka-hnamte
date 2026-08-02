@@ -25,8 +25,13 @@ const site = await getSiteData();
 </BaseLayout>
 
 <script>
-  // Hydrate Latest Posts dynamically from LocalStorage (Newest First at top of feed)
-  const storedPosts = localStorage.getItem('tka_posts');
+  // Purge old sample posts from browser cache if present
+  let storedPosts = localStorage.getItem('tka_posts');
+  if (storedPosts && (storedPosts.includes('tourist-destination') || storedPosts.includes('post-1'))) {
+    localStorage.removeItem('tka_posts');
+    storedPosts = null;
+  }
+
   if (storedPosts) {
     try {
       const posts = JSON.parse(storedPosts);

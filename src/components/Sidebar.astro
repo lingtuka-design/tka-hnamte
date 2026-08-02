@@ -52,7 +52,12 @@ const initialMostRead = await getTrendingPosts();
 
 <script>
   // Dynamic Most Read List ordered by highest view counts
-  const storedPosts = localStorage.getItem('tka_posts');
+  let storedPosts = localStorage.getItem('tka_posts');
+  if (storedPosts && (storedPosts.includes('tourist-destination') || storedPosts.includes('post-1'))) {
+    localStorage.removeItem('tka_posts');
+    storedPosts = null;
+  }
+
   if (storedPosts) {
     try {
       const posts = JSON.parse(storedPosts);
