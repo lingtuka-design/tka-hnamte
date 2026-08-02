@@ -251,41 +251,13 @@ const site = await getSiteData();
         try {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
-            const clean = parsed.filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
-            localStorage.setItem('tka_posts', JSON.stringify(clean));
+            const clean = parsed.filter((p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
             return clean;
           }
         } catch (e) {}
       }
-      localStorage.setItem('tka_posts', JSON.stringify([]));
       return [];
     }
-
-    async function initCloudPosts() {
-      try {
-        const res = await fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.posts) && data.posts.length > 0) {
-            const currentLocal = getLocalPosts();
-            const map = new Map();
-            for (const p of currentLocal) {
-              if (p && p.id) map.set(p.id, p);
-            }
-            for (const p of data.posts) {
-              if (p && p.id && !map.has(p.id)) map.set(p.id, p);
-            }
-            const clean = Array.from(map.values()).filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
-            localStorage.setItem('tka_posts', JSON.stringify(clean));
-            renderPosts();
-          }
-        }
-      } catch (e) {}
-    }
-
-    initCloudPosts();
 
     function renderPosts() {
       const posts = getLocalPosts();
@@ -294,13 +266,13 @@ const site = await getSiteData();
 
       tbody.innerHTML = posts.map((post: any) => `
         <tr>
-          <td>${post.month} ${post.day}</td>
+          <td>${post.month || 'Aug'} ${post.day || '01'}</td>
           <td>
-            <a href="/post/${post.slug}" target="_blank" style="font-weight: 600; color: var(--text-heading);">
+            <a href="/post/read?slug=${post.slug}" target="_blank" style="font-weight: 600; color: var(--text-heading);">
               ${post.title}
             </a>
           </td>
-          <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">${post.category}</span></td>
+          <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">${post.category || 'Article'}</span></td>
           <td>
             <button class="delete-post-btn admin-btn admin-btn-danger" data-id="${post.id}" style="padding: 4px 10px; font-size: 0.8rem;">
               Delete
@@ -318,17 +290,6 @@ const site = await getSiteData();
           let currentPosts = getLocalPosts();
           currentPosts = currentPosts.filter((p: any) => p.id !== id);
           localStorage.setItem('tka_posts', JSON.stringify(currentPosts));
-          
-          // Sync deletion live to Cloud DB
-          fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify({ posts: currentPosts, categories: getLocalCategories() }),
-          }).catch(err => console.error(err));
-
           renderPosts();
         });
       });
@@ -340,7 +301,7 @@ const site = await getSiteData();
       e.preventDefault();
 
       const title = (document.getElementById('postTitle') as HTMLInputElement).value.trim();
-      const category = (document.getElementById('postCategory') as HTMLSelectElement).value;
+      const category = (document.getElementById('postCategory') as HTMLSelectElement).value || 'Article';
       const featuredImage = imageUrlInput.value || 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80';
       const tagStr = (document.getElementById('postTags') as HTMLInputElement).value;
       const tags = tagStr.split(',').map(t => t.trim()).filter(Boolean);
@@ -374,17 +335,7 @@ const site = await getSiteData();
       posts.unshift(newPost);
       localStorage.setItem('tka_posts', JSON.stringify(posts));
 
-      // Sync live to Cloudflare Database for all mobile devices
-      fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ posts, categories: getLocalCategories() }),
-      }).catch(err => console.error(err));
-
-      alert('✓ Blog post published live to Cloudflare database! Mobile phones & visitors will see it immediately.');
+      alert('✓ Post published successfully!');
       createPostForm.reset();
       if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
       renderPosts();

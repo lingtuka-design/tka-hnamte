@@ -25,91 +25,59 @@ const site = await getSiteData();
 </BaseLayout>
 
 <script>
-  // Real-time Cloud Database Feed Hydration for all visitors
-  async function loadCloudFeed() {
+  function renderFeed() {
     const feedContainer = document.getElementById('postsFeedContainer');
     if (!feedContainer) return;
 
     try {
-      let localPosts = [];
       const stored = localStorage.getItem('tka_posts');
       if (stored) {
-        try { localPosts = JSON.parse(stored); } catch (e) {}
-      }
-
-      let cloudPosts = [];
-      const res = await fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
-        headers: { 'Accept': 'application/json' }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.posts)) {
-          cloudPosts = data.posts;
-        }
-      }
-
-      const map = new Map();
-      for (const p of localPosts) {
-        if (p && p.id && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique') {
-          map.set(p.id, p);
-        }
-      }
-      for (const p of cloudPosts) {
-        if (p && p.id && !map.has(p.id)) {
-          map.set(p.id, p);
-        }
-      }
-
-      const posts = Array.from(map.values());
-
-      if (posts.length > 0) {
-        feedContainer.innerHTML = posts.map((post: any) => `
-          <article class="post-card">
-            <div class="post-header">
-              <div class="date-badge">
-                <span class="day">${post.day}</span>
-                <span class="month">${post.month}</span>
+        const posts = JSON.parse(stored);
+        const clean = posts.filter((p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique');
+        
+        if (clean.length > 0) {
+          feedContainer.innerHTML = clean.map((post: any) => `
+            <article class="post-card">
+              <div class="post-header">
+                <div class="date-badge">
+                  <span class="day">${post.day || '01'}</span>
+                  <span class="month">${post.month || 'Aug'}</span>
+                </div>
+                <div class="post-title-link">
+                  <h2 class="post-title">
+                    <a href="/post/read?slug=${post.slug}">${post.title}</a>
+                  </h2>
+                </div>
               </div>
-              <div class="post-title-link">
-                <h2 class="post-title">
-                  <a href="/post/read?slug=${post.slug}">${post.title}</a>
-                </h2>
+
+              <div class="post-image-wrap">
+                <a href="/post/read?slug=${post.slug}">
+                  <img src="${post.featuredImage || 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80'}" alt="${post.title}" loading="lazy" />
+                </a>
               </div>
-            </div>
 
-            <div class="post-image-wrap">
-              <a href="/post/read?slug=${post.slug}">
-                <img src="${post.featuredImage}" alt="${post.title}" loading="lazy" />
-              </a>
-            </div>
+              <p class="post-excerpt">${post.excerpt || post.content || ''}</p>
 
-            <p class="post-excerpt">${post.excerpt}</p>
-
-            <div class="post-footer">
-              <a href="/post/read?slug=${post.slug}" class="read-more">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Read more
-              </a>
-              <span class="comments-count">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-                ${post.commentsCount || 0} Comments
-              </span>
-            </div>
-          </article>
-        `).join('');
-      } else {
-        feedContainer.innerHTML = `
-          <div style="padding: 60px 0; text-align: center;">
-            <p style="color: var(--text-muted); font-size: 1.1rem;">No blog posts published yet.</p>
-          </div>
-        `;
+              <div class="post-footer">
+                <a href="/post/read?slug=${post.slug}" class="read-more">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Read more
+                </a>
+                <span class="comments-count">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                  ${post.commentsCount || 0} Comments
+                </span>
+              </div>
+            </article>
+          `).join('');
+        }
       }
     } catch (e) {
       console.error(e);
     }
   }
 
-  loadCloudFeed();
+  renderFeed();
 </script>
