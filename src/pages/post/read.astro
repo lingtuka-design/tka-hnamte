@@ -41,7 +41,7 @@ const defaultPost = posts[0] || {
           <img id="postFeaturedImg" src="" alt="" style="border-radius: 6px; width: 100%; max-height: 500px; object-fit: cover;" />
         </div>
 
-        <div id="postBodyContent" class="post-content" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main); margin-bottom: 40px; white-space: pre-line;">
+        <div id="postBodyContent" class="post-content" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main); margin-bottom: 40px;">
         </div>
 
         <div id="postTagsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
@@ -102,6 +102,20 @@ const defaultPost = posts[0] || {
     return seedPosts;
   }
 
+  // Renders stored content safely: trusts HTML, converts legacy plain text
+  // into paragraphs, and never executes embedded scripts.
+  function renderContent(content: string): string {
+    if (!content) return '';
+    const safe = String(content).replace(/<script[\s\S]*?<\/script>/gi, '');
+    if (/<\/?[a-z][\s\S]*>/i.test(safe)) return safe;
+    const esc = safe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return `<p>${esc.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+  }
+
   function applyPost(match: any) {
     document.title = `${match.title} - ṬKA Hnamte`;
 
@@ -118,7 +132,7 @@ const defaultPost = posts[0] || {
     const tagsContainer = document.getElementById('postTagsContainer');
 
     if (titleEl) titleEl.textContent = match.title;
-    if (contentEl) contentEl.textContent = match.content || match.excerpt || '';
+    if (contentEl) contentEl.innerHTML = renderContent(match.content || match.excerpt || '');
     if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
     if (dateEl) dateEl.textContent = `${match.day || '01'} ${match.month || 'Aug'}`;
     if (catLink) {

@@ -17,10 +17,10 @@ const site = await getSiteData();
       <button id="logoutBtn" class="admin-btn admin-btn-danger" style="font-size: 0.85rem;">Logout</button>
     </div>
 
-    <!-- Create Post Section -->
+    <!-- Create / Edit Post Section -->
     <div class="admin-card">
       <h2 style="font-size: 1.2rem; margin-bottom: 18px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        Publish New Blog Post
+        Publish / Edit Blog Post
       </h2>
 
       <form id="createPostForm">
@@ -63,8 +63,29 @@ const site = await getSiteData();
         </div>
 
         <div class="admin-form-group">
-          <label for="postContent">Post Content (Markdown or Text) *</label>
-          <textarea id="postContent" class="admin-textarea" rows="8" placeholder="Write your full post content here..." required></textarea>
+          <label for="postContentEditor">Post Content *</label>
+          <div class="rte-toolbar" id="rteToolbar">
+            <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+            <button type="button" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+            <span class="rte-sep"></span>
+            <button type="button" data-cmd="formatBlock" data-value="H2" title="Heading"><b>H2</b></button>
+            <button type="button" data-cmd="formatBlock" data-value="H3" title="Subheading"><b>H3</b></button>
+            <button type="button" data-cmd="formatBlock" data-value="P" title="Paragraph">P</button>
+            <button type="button" data-cmd="formatBlock" data-value="blockquote" title="Quote">&quot;</button>
+            <span class="rte-sep"></span>
+            <button type="button" data-cmd="insertUnorderedList" title="Bullet List">List</button>
+            <button type="button" data-cmd="insertOrderedList" title="Numbered List">1. List</button>
+            <span class="rte-sep"></span>
+            <button type="button" data-cmd="createLink" title="Insert Link">Link</button>
+            <button type="button" id="rteImageBtn" title="Insert Image from URL">Image</button>
+            <button type="button" id="rteImageFileBtn" title="Upload Image">Upload</button>
+            <span class="rte-sep"></span>
+            <button type="button" data-cmd="removeFormat" title="Clear Formatting">Clear</button>
+          </div>
+          <div id="postContentEditor" class="rte-editor" contenteditable="true" data-placeholder="Write your post here..."></div>
+          <input type="file" id="rteImageFile" accept="image/*" style="display:none;" />
         </div>
 
         <div class="admin-form-group" style="display: flex; align-items: center; gap: 8px;">
@@ -72,9 +93,15 @@ const site = await getSiteData();
           <label for="postTrending" style="margin-bottom: 0; text-transform: none;">Pin to Sidebar Trending Widget</label>
         </div>
 
-        <button type="submit" id="savePostBtn" class="admin-btn" style="margin-top: 10px;">
-          Publish Post Now
-        </button>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+          <button type="submit" id="savePostBtn" class="admin-btn">
+            Publish Post Now
+          </button>
+          <button type="button" id="cancelEditBtn" class="admin-btn admin-btn-danger" style="display: none;">
+            Cancel Edit
+          </button>
+          <span id="editingIndicator" style="display: none; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700;"></span>
+        </div>
       </form>
     </div>
 
@@ -298,13 +325,26 @@ const site = await getSiteData();
             </a>
           </td>
           <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">${post.category || 'Article'}</span></td>
-          <td>
+          <td style="white-space: nowrap;">
+            <button class="edit-post-btn admin-btn" data-id="${post.id}" style="padding: 4px 10px; font-size: 0.8rem; margin-right: 6px;">
+              Edit
+            </button>
             <button class="delete-post-btn admin-btn admin-btn-danger" data-id="${post.id}" style="padding: 4px 10px; font-size: 0.8rem;">
               Delete
             </button>
           </td>
         </tr>
       `).join('');
+
+      // Rebind Edit Post Listeners
+      document.querySelectorAll('.edit-post-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+          if (!id) return;
+          const post = getLocalPosts().find((p: any) => p.id === id);
+          if (post) startEditPost(post);
+        });
+      });
 
       // Rebind Delete Post Listeners
       document.querySelectorAll('.delete-post-btn').forEach(btn => {
@@ -331,7 +371,129 @@ const site = await getSiteData();
       });
     }
 
-    // Create Post Handler
+    // ---------- Rich Text Editor ----------
+    const rteEditor = document.getElementById('postContentEditor') as HTMLElement;
+    const rteToolbar = document.getElementById('rteToolbar');
+    const rteImageFileInput = document.getElementById('rteImageFile') as HTMLInputElement;
+
+    function execCmd(cmd: string, value?: string) {
+      rteEditor?.focus();
+      document.execCommand(cmd, false, value || null);
+      updateRteButtons();
+    }
+
+    function updateRteButtons() {
+      document.querySelectorAll('#rteToolbar button[data-cmd]').forEach((btn) => {
+        const cmd = btn.getAttribute('data-cmd');
+        btn.classList.toggle('is-active', cmd ? document.queryCommandState(cmd) : false);
+      });
+    }
+
+    rteToolbar?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('button[data-cmd]') as HTMLButtonElement;
+      if (!btn) return;
+      const cmd = btn.getAttribute('data-cmd') || '';
+      const value = btn.getAttribute('data-value') || '';
+
+      if (cmd === 'createLink') {
+        const url = prompt('Enter link URL:', 'https://');
+        if (url) execCmd('createLink', url);
+        return;
+      }
+      if (cmd === 'formatBlock') {
+        execCmd('formatBlock', value === 'blockquote' ? '<blockquote>' : value);
+        return;
+      }
+      execCmd(cmd, value || undefined);
+    });
+
+    rteEditor?.addEventListener('keyup', updateRteButtons);
+    rteEditor?.addEventListener('mouseup', updateRteButtons);
+
+    // Insert image into content from a URL
+    document.getElementById('rteImageBtn')?.addEventListener('click', () => {
+      const url = prompt('Enter image URL:');
+      if (url) execCmd('insertImage', url);
+    });
+
+    // Upload an image from the device and insert it into the content
+    document.getElementById('rteImageFileBtn')?.addEventListener('click', () => {
+      rteImageFileInput?.click();
+    });
+    rteImageFileInput?.addEventListener('change', () => {
+      if (!rteImageFileInput.files || rteImageFileInput.files.length === 0) return;
+      const file = rteImageFileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const url = ev.target?.result as string;
+        if (url) execCmd('insertImage', url);
+        rteImageFileInput.value = '';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------- Edit Post State ----------
+    let editingPostId: string | null = null;
+
+    function startEditPost(post: any) {
+      editingPostId = post.id;
+
+      (document.getElementById('postTitle') as HTMLInputElement).value = post.title || '';
+
+      const catSelect = document.getElementById('postCategory') as HTMLSelectElement;
+      if (post.category) {
+        let opt = Array.from(catSelect.options).find(o => o.value === post.category);
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = post.category;
+          opt.textContent = post.category;
+          catSelect.appendChild(opt);
+        }
+        catSelect.value = post.category;
+      }
+
+      (document.getElementById('postTags') as HTMLInputElement).value = (post.tags || []).join(', ');
+      (document.getElementById('postExcerpt') as HTMLInputElement).value = post.excerpt || '';
+      (document.getElementById('postTrending') as HTMLInputElement).checked = !!post.trending;
+      if (rteEditor) rteEditor.innerHTML = post.content || '';
+
+      imageUrlInput.value = post.featuredImage || '';
+      if (imagePreview && imagePreviewContainer) {
+        imagePreview.src = post.featuredImage || '';
+        imagePreviewContainer.style.display = post.featuredImage ? 'block' : 'none';
+      }
+
+      const saveBtn = document.getElementById('savePostBtn');
+      const cancelBtn = document.getElementById('cancelEditBtn');
+      const indicator = document.getElementById('editingIndicator');
+      if (saveBtn) saveBtn.textContent = 'Update Post';
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      if (indicator) {
+        indicator.textContent = `Editing: ${post.title}`;
+        indicator.style.display = 'inline-block';
+      }
+
+      document.getElementById('createPostForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetPostForm() {
+      editingPostId = null;
+      (document.getElementById('createPostForm') as HTMLFormElement).reset();
+      if (rteEditor) rteEditor.innerHTML = '';
+      imageUrlInput.value = '';
+      if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+
+      const saveBtn = document.getElementById('savePostBtn');
+      const cancelBtn = document.getElementById('cancelEditBtn');
+      const indicator = document.getElementById('editingIndicator');
+      if (saveBtn) saveBtn.textContent = 'Publish Post Now';
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      if (indicator) indicator.style.display = 'none';
+    }
+
+    document.getElementById('cancelEditBtn')?.addEventListener('click', resetPostForm);
+
+    // ---------- Save Post Handler (Create + Edit) ----------
     const createPostForm = document.getElementById('createPostForm') as HTMLFormElement;
     createPostForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -342,50 +504,61 @@ const site = await getSiteData();
       const tagStr = (document.getElementById('postTags') as HTMLInputElement).value;
       const tags = tagStr.split(',').map(t => t.trim()).filter(Boolean);
       const excerpt = (document.getElementById('postExcerpt') as HTMLInputElement).value;
-      const content = (document.getElementById('postContent') as HTMLTextAreaElement).value;
+      const content = rteEditor ? rteEditor.innerHTML : '';
+      const plainText = rteEditor ? (rteEditor.innerText || '') : '';
       const trending = (document.getElementById('postTrending') as HTMLInputElement).checked;
 
+      if (!title || !plainText.trim()) {
+        alert('Post title and content are required.');
+        return;
+      }
+
+      const existing = editingPostId ? getLocalPosts().find((p: any) => p.id === editingPostId) : null;
       const dateObj = new Date();
       const dayStr = String(dateObj.getDate()).padStart(2, '0');
       const monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
 
-      const newPost = {
-        id: `post-${Date.now()}`,
-        slug,
+      const postData = {
+        id: existing ? existing.id : `post-${Date.now()}`,
+        slug: existing ? existing.slug : title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now(),
         title,
-        date: dateObj.toISOString().split('T')[0],
-        day: dayStr,
-        month: monthStr,
+        date: existing ? existing.date : dateObj.toISOString().split('T')[0],
+        day: existing ? existing.day : dayStr,
+        month: existing ? existing.month : monthStr,
         category,
         categorySlug: category.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         featuredImage,
-        excerpt: excerpt || content.substring(0, 140) + '...',
+        excerpt: excerpt || plainText.substring(0, 140) + '...',
         content,
         trending,
-        commentsCount: 0,
+        views: existing ? (existing.views || 0) : 0,
+        commentsCount: existing ? (existing.commentsCount || 0) : 0,
         tags
       };
 
       const posts = getLocalPosts();
-      posts.unshift(newPost);
+      const idx = posts.findIndex((p: any) => p.id === postData.id);
+      if (idx >= 0) {
+        posts[idx] = { ...posts[idx], ...postData };
+      } else {
+        posts.unshift(postData);
+      }
       saveLocalPosts(posts);
       renderPosts();
 
-      // Post live to the Cloudflare KV-backed serverless function /api/posts
+      // Persist to the Cloudflare KV-backed serverless function /api/posts
       try {
         await fetch('/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newPost)
+          body: JSON.stringify(postData)
         });
       } catch (err) {
         console.error('Cloudflare Worker Post Error:', err);
       }
 
-      alert('✓ Post published successfully live to Cloudflare!');
-      createPostForm.reset();
-      if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+      alert(existing ? '✓ Post updated successfully live to Cloudflare!' : '✓ Post published successfully live to Cloudflare!');
+      resetPostForm();
       renderPosts();
     });
 

@@ -18,10 +18,17 @@ const site = await getSiteData();
     <Sidebar />
   </div>
 
-  <script type="application/json" id="ssrPosts" is:inline>{JSON.stringify(posts)}</script>
+  <script type="application/json" id="ssrPosts" is:inline set:html={JSON.stringify(posts)}></script>
 </BaseLayout>
 
 <script>
+  function stripHtml(html: any): string {
+    if (!html) return '';
+    const d = document.createElement('div');
+    d.innerHTML = String(html).replace(/<script[\s\S]*?<\/script>/gi, '');
+    return d.textContent || '';
+  }
+
   function postCardHTML(post: any) {
     return `
       <article class="post-card">
@@ -43,7 +50,7 @@ const site = await getSiteData();
           </a>
         </div>
 
-        <p class="post-excerpt">${post.excerpt || post.content || ''}</p>
+        <p class="post-excerpt">${post.excerpt || stripHtml(post.content) || ''}</p>
 
         <div class="post-footer">
           <a href="/post/read?slug=${post.slug}" class="read-more">

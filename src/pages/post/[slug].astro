@@ -72,6 +72,20 @@ if (!post) {
   const pathParts = window.location.pathname.split('/');
   const slug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
 
+  // Renders stored content safely: trusts HTML, converts legacy plain text
+  // into paragraphs, and never executes embedded scripts.
+  function renderContent(content: string): string {
+    if (!content) return '';
+    const safe = String(content).replace(/<script[\s\S]*?<\/script>/gi, '');
+    if (/<\/?[a-z][\s\S]*>/i.test(safe)) return safe;
+    const esc = safe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return `<p>${esc.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+  }
+
   function applyMatch(match: any) {
     const titleEl = document.querySelector('.single-post-header h1');
     const contentEl = document.querySelector('.post-content');
@@ -79,7 +93,10 @@ if (!post) {
     const dateBadge = document.querySelector('.date-badge');
 
     if (titleEl) titleEl.textContent = match.title;
-    if (contentEl) contentEl.textContent = match.content || match.excerpt || '';
+    if (contentEl) {
+      contentEl.innerHTML = renderContent(match.content || match.excerpt || '');
+      contentEl.style.whiteSpace = 'normal';
+    }
     if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
     if (dateBadge) dateBadge.textContent = `${match.day} ${match.month}`;
   }
