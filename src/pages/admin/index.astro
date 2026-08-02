@@ -158,23 +158,44 @@ const site = await getSiteData();
       window.location.href = '/admin/login/';
     });
 
-    // Category State Management (LocalStorage + Seed Fallback)
-    const initialCategories = [
-      { id: "cat-1", name: "Photo", slug: "photo" },
-      { id: "cat-2", name: "Hobby", slug: "hobby" },
-      { id: "cat-3", name: "Food", slug: "food" },
-      { id: "cat-4", name: "Funny", slug: "funny" },
-      { id: "cat-5", name: "Travel", slug: "travel" },
-      { id: "cat-6", name: "Video", slug: "video" }
-    ];
+    // Category State Management (KV-backed, localStorage is just a cache)
+    const DEFAULT_CATS = [{ id: "cat-1", name: "Article", slug: "article" }];
+    let localCats: any[] | null = null;
 
     function getLocalCategories() {
+      if (localCats) return localCats;
       const stored = localStorage.getItem('tka_categories');
       if (stored) {
-        try { return JSON.parse(stored); } catch (e) {}
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localCats = parsed;
+            return parsed;
+          }
+        } catch (e) {}
       }
-      localStorage.setItem('tka_categories', JSON.stringify(initialCategories));
-      return initialCategories;
+      localCats = [...DEFAULT_CATS];
+      localStorage.setItem('tka_categories', JSON.stringify(localCats));
+      return localCats;
+    }
+
+    function saveLocalCats() {
+      localStorage.setItem('tka_categories', JSON.stringify(localCats));
+      renderCategories();
+    }
+
+    async function initCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.categories) && data.categories.length > 0) {
+            localCats = data.categories;
+            localStorage.setItem('tka_categories', JSON.stringify(localCats));
+          }
+        }
+      } catch (e) {}
+      renderCategories();
     }
 
     function renderCategories() {
@@ -197,21 +218,30 @@ const site = await getSiteData();
 
       // Rebind Delete Category Listeners
       document.querySelectorAll('.delete-cat-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
           if (!id || !confirm('Are you sure you want to delete this category?')) return;
 
-          let currentCats = getLocalCategories();
-          currentCats = currentCats.filter((c: any) => c.id !== id);
-          localStorage.setItem('tka_categories', JSON.stringify(currentCats));
-          renderCategories();
+          const deleted = getLocalCategories().find((c: any) => c.id === id);
+          localCats = getLocalCategories().filter((c: any) => c.id !== id);
+          saveLocalCats();
+
+          if (deleted) {
+            try {
+              await fetch('/api/categories', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+              });
+            } catch (err) {}
+          }
         });
       });
     }
 
     // Add Category Handler
     const addCatForm = document.getElementById('addCategoryForm') as HTMLFormElement;
-    addCatForm?.addEventListener('submit', (e) => {
+    addCatForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = document.getElementById('newCatName') as HTMLInputElement;
       const name = input.value.trim();
@@ -221,11 +251,19 @@ const site = await getSiteData();
       const cats = getLocalCategories();
       const newCat = { id: `cat-${Date.now()}`, name, slug };
       cats.push(newCat);
-      localStorage.setItem('tka_categories', JSON.stringify(cats));
-
       input.value = '';
-      renderCategories();
+      saveLocalCats();
+
+      try {
+        await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+      } catch (err) {}
     });
+
+    initCategories();
 
     // Image Upload & Cloudflare R2 Handler
     const imageUploadInput = document.getElementById('imageUpload') as HTMLInputElement;

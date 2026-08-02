@@ -34,22 +34,42 @@ const currentPath = Astro.url.pathname;
 </nav>
 
 <script>
-  // Hydrate categories dynamically if modified in Admin
-  const storedCats = localStorage.getItem('tka_categories');
-  if (storedCats) {
+  // Hydrate categories from the KV-backed API (authoritative). Also overwrites
+  // any stale/seeded localStorage list so the menu always matches the real data.
+  function renderNavCats(cats: any[]) {
+    const navLinks = document.querySelector('.nav-links');
+    if (!navLinks || !Array.isArray(cats) || cats.length === 0) return;
+    const homeLi = navLinks.querySelector('li:first-child');
+    const adminLi = navLinks.querySelector('li:last-child');
+    const catLis = cats.map((cat: any) => `
+      <li>
+        <a href="/category/${cat.slug}" class="nav-item">${cat.name.toUpperCase()}</a>
+      </li>
+    `).join('');
+    navLinks.innerHTML = `${homeLi?.outerHTML || ''}${catLis}${adminLi?.outerHTML || ''}`;
+  }
+
+  (async () => {
     try {
-      const cats = JSON.parse(storedCats);
-      const navLinks = document.querySelector('.nav-links');
-      if (navLinks && cats.length > 0) {
-        const homeLi = navLinks.querySelector('li:first-child');
-        const adminLi = navLinks.querySelector('li:last-child');
-        const catLis = cats.map((cat: any) => `
-          <li>
-            <a href="/category/${cat.slug}" class="nav-item">${cat.name.toUpperCase()}</a>
-          </li>
-        `).join('');
-        navLinks.innerHTML = `${homeLi?.outerHTML || ''}${catLis}${adminLi?.outerHTML || ''}`;
+      const res = await fetch('/api/categories');
+      if (res.ok) {
+        const data = await res.json();
+        const cats = Array.isArray(data.categories) ? data.categories : [];
+        if (cats.length > 0) {
+          localStorage.setItem('tka_categories', JSON.stringify(cats));
+          renderNavCats(cats);
+          return;
+        }
       }
     } catch (e) {}
-  }
+
+    // Fallback: only render a stored list if it actually exists (never seeded).
+    try {
+      const stored = localStorage.getItem('tka_categories');
+      if (stored) {
+        const cats = JSON.parse(stored);
+        if (Array.isArray(cats) && cats.length > 0) renderNavCats(cats);
+      }
+    } catch (e) {}
+  })();
 </script>
