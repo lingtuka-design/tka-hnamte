@@ -335,7 +335,14 @@ const site = await getSiteData();
       posts.unshift(newPost);
       localStorage.setItem('tka_posts', JSON.stringify(posts));
 
-      alert('✓ Post published successfully!');
+      // Post live to Cloudflare Serverless Function /api/posts
+      fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPost)
+      }).catch(err => console.error('Cloudflare Worker Post Error:', err));
+
+      alert('✓ Post published successfully live to Cloudflare!');
       createPostForm.reset();
       if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
       renderPosts();

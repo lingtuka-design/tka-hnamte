@@ -25,54 +25,70 @@ const site = await getSiteData();
 </BaseLayout>
 
 <script>
-  function renderFeed() {
+  async function renderFeed() {
     const feedContainer = document.getElementById('postsFeedContainer');
     if (!feedContainer) return;
 
     try {
+      let posts = [];
       const stored = localStorage.getItem('tka_posts');
       if (stored) {
-        const posts = JSON.parse(stored);
-        const clean = posts.filter((p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique');
-        
-        if (clean.length > 0) {
-          feedContainer.innerHTML = clean.map((post: any) => `
-            <article class="post-card">
-              <div class="post-header">
-                <div class="date-badge">
-                  <span class="day">${post.day || '01'}</span>
-                  <span class="month">${post.month || 'Aug'}</span>
-                </div>
-                <div class="post-title-link">
-                  <h2 class="post-title">
-                    <a href="/post/read?slug=${post.slug}">${post.title}</a>
-                  </h2>
-                </div>
-              </div>
+        try { posts = JSON.parse(stored); } catch (e) {}
+      }
 
-              <div class="post-image-wrap">
-                <a href="/post/read?slug=${post.slug}">
-                  <img src="${post.featuredImage || 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80'}" alt="${post.title}" loading="lazy" />
-                </a>
-              </div>
-
-              <p class="post-excerpt">${post.excerpt || post.content || ''}</p>
-
-              <div class="post-footer">
-                <a href="/post/read?slug=${post.slug}" class="read-more">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  Read more
-                </a>
-                <span class="comments-count">
-                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-                  ${post.commentsCount || 0} Comments
-                </span>
-              </div>
-            </article>
-          `).join('');
+      // Try fetching live server posts from Cloudflare Edge Worker Function
+      try {
+        const res = await fetch('/api/posts');
+        if (res.ok) {
+          const cloudPosts = await res.json();
+          if (Array.isArray(cloudPosts) && cloudPosts.length > 0) {
+            const map = new Map();
+            for (const p of posts) { if (p && p.id) map.set(p.id, p); }
+            for (const p of cloudPosts) { if (p && p.id && !map.has(p.id)) map.set(p.id, p); }
+            posts = Array.from(map.values());
+          }
         }
+      } catch (err) {}
+
+      const clean = posts.filter((p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique');
+      
+      if (clean.length > 0) {
+        feedContainer.innerHTML = clean.map((post: any) => `
+          <article class="post-card">
+            <div class="post-header">
+              <div class="date-badge">
+                <span class="day">${post.day || '01'}</span>
+                <span class="month">${post.month || 'Aug'}</span>
+              </div>
+              <div class="post-title-link">
+                <h2 class="post-title">
+                  <a href="/post/read?slug=${post.slug}">${post.title}</a>
+                </h2>
+              </div>
+            </div>
+
+            <div class="post-image-wrap">
+              <a href="/post/read?slug=${post.slug}">
+                <img src="${post.featuredImage || 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80'}" alt="${post.title}" loading="lazy" />
+              </a>
+            </div>
+
+            <p class="post-excerpt">${post.excerpt || post.content || ''}</p>
+
+            <div class="post-footer">
+              <a href="/post/read?slug=${post.slug}" class="read-more">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Read more
+              </a>
+              <span class="comments-count">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                ${post.commentsCount || 0} Comments
+              </span>
+            </div>
+          </article>
+        `).join('');
       }
     } catch (e) {
       console.error(e);
