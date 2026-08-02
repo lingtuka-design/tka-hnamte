@@ -17,23 +17,8 @@
   "categories": [
     {
       "id": "cat-1",
-      "name": "Football",
-      "slug": "football"
-    },
-    {
-      "id": "cat-2",
-      "name": "Music",
-      "slug": "music"
-    },
-    {
-      "id": "cat-3",
-      "name": "Photo",
-      "slug": "photo"
-    },
-    {
-      "id": "cat-4",
-      "name": "Hobby",
-      "slug": "hobby"
+      "name": "Article",
+      "slug": "article"
     }
   ],
   "posts": [
@@ -41,84 +26,21 @@
       "id": "post-hnathawh-zak-suh",
       "slug": "hnathawh-zak-suh",
       "title": "Hnathawh zak suh",
-      "date": "2026-08-02",
-      "day": "02",
-      "month": "Aug",
-      "category": "Hobby",
-      "categorySlug": "hobby",
-      "featuredImage": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
-      "excerpt": "Hna hi eng hna pawh ni se, rinawm tak leh hintham taka thawh hi mi gnam tak nihna a ni a, hnathawh zahpui loh hi hmasawnna bul thut a ni...",
-      "content": "Hna hi eng hna pawh ni se, rinawm tak leh hintham taka thawh hi mi gnam tak nihna a ni.\n\nKeini Mizo ṭhalai te tan pawh kut hnathawk emaw, a te ber aṭanga a lian ber thlengin hnathawh hi zahpui tur a ni lova, kut zangthuite hi mi hlawhtling nihna a ni. Hnasiamtu nih leh mahni ke a din hi tum tlat tur a ni.",
-      "trending": true,
-      "views": 50,
-      "commentsCount": 0,
-      "tags": [
-        "Thoughts",
-        "Work",
-        "Mizoram"
-      ]
-    },
-    {
-      "id": "post-101",
-      "slug": "arsenal-premier-league-season-thlirna",
-      "title": "Arsenal & Premier League Season Thlirna",
       "date": "2026-08-01",
       "day": "01",
       "month": "Aug",
-      "category": "Football",
-      "categorySlug": "football",
-      "featuredImage": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
-      "excerpt": "Football hi ka ngaina viau a, a bik takin Arsenal inkhel hi ka en peih lehzual a. Season thar atan beisei a sang leh hle...",
-      "content": "Football hi ka ngaina viau a, a bik takin Arsenal inkhel hi ka en peih lehzual a. Season tin hian match hmuhnawm leh suspense sang tak nen Arsenal inkhel hi hmaih phal lova en ṭhin a ni.\n\nSquad depth leh tactical setup-ah pawh hmangaihtu te tan beiseina sang tak a awm a, match tin hi khelmual chhunga passion leh spirit hmuhnawm ber ber te an ni.",
+      "category": "Article",
+      "categorySlug": "article",
+      "featuredImage": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
+      "excerpt": "Khawvel a changkang zel a, thalaite hawiher leh rilru puthmang pawh a inthlak danglam ve zel a. A tha lam a awm laiin a...",
+      "content": "Khawvel a changkang zel a, thalaite hawiher leh rilru puthmang pawh a inthlak danglam ve zel a. A tha lam a awm laiin a inthlahdahna leh hnathawh hreh rilru putna hi thil pawi tak a ni.\n\nHna hi eng hna pawh ni se, hintham taka thawh hi mi gnam tak nihna a ni a, hnathawh zahpui loh hi hmasawnna bul thut a ni. Keini Mizo ṭhalai te tan pawh kut hnathawk emaw, a te ber aṭanga a lian ber thlengin hnathawh hi zahpui tur a ni lova, kut zangthuite hi mi hlawhtling nihna a ni. Hnasiamtu nih leh mahni ke a din hi tum tlat tur a ni.",
       "trending": true,
-      "views": 42,
+      "views": 7,
       "commentsCount": 0,
       "tags": [
-        "Arsenal",
-        "Football",
-        "Sports"
-      ]
-    },
-    {
-      "id": "post-102",
-      "slug": "1980s-rock-music-classics",
-      "title": "1980's Rock Music: Timeless Guitars & Riffs",
-      "date": "2026-07-28",
-      "day": "28",
-      "month": "Jul",
-      "category": "Music",
-      "categorySlug": "music",
-      "featuredImage": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
-      "excerpt": "Tun thlengin 1980's Rock Music kha ka la tuipui deuh ber. Classic guitar solos leh timeless rock energy...",
-      "content": "Tun thlengin 1980's Rock Music kha ka la tuipui deuh ber.\n\nHeavy guitar riffs, melodic guitar solos, leh vocals sang leh thiltihthei tak tak te kha tun thleng hian ka la ngaithla fo ṭhin. 80s rock generation-a music production leh organic sound-te hi a aiawh zo tur hi a awm meuh lo a ni.",
-      "trending": true,
-      "views": 38,
-      "commentsCount": 0,
-      "tags": [
-        "Rock",
-        "Music",
-        "80s"
-      ]
-    },
-    {
-      "id": "post-103",
-      "slug": "mizoram-nature-outdoor-photography",
-      "title": "Mizoram Nature & Mountain Photography",
-      "date": "2026-07-20",
-      "day": "20",
-      "month": "Jul",
-      "category": "Photo",
-      "categorySlug": "photo",
-      "featuredImage": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
-      "excerpt": "Mizoram tlang leh mual mawi tak tak te camera hmanga thlalaka han rak chhuah hi nuam ka ti hle...",
-      "content": "Mizoram tlang mual mawi tak tak te, a chhum zing leh tlang dung te hi camera hmanga thlalaka han chawi chhuah hi nuam ka ti hle ṭhin.\n\nOutdoor photography-ah hian zinga ni chhuak leh tlai ni tla a mawi ṭhin em em a, a bik takin tlang sang aṭanga thlir hian rilru a hahdam duh hle.",
-      "trending": true,
-      "views": 25,
-      "commentsCount": 0,
-      "tags": [
+        "Article",
         "Mizoram",
-        "Photography",
-        "Nature"
+        "Work"
       ]
     }
   ],
