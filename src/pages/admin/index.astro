@@ -251,12 +251,37 @@ const site = await getSiteData();
         try {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
-            const clean = parsed.filter((p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
-            return clean;
+            return parsed.filter((p: any) => p && p.title);
           }
         } catch (e) {}
       }
       return [];
+    }
+
+    function saveLocalPosts(posts: any[]) {
+      localStorage.setItem('tka_posts', JSON.stringify(posts));
+    }
+
+    function syncLocalPosts(posts: any[]) {
+      const map = new Map();
+      for (const p of getLocalPosts()) { if (p && p.id) map.set(p.id, p); }
+      for (const p of posts) { if (p && p.id) map.set(p.id, p); }
+      saveLocalPosts(Array.from(map.values()));
+    }
+
+    // Load all published posts from the Cloudflare KV database on every load.
+    async function loadCloudPosts() {
+      try {
+        const res = await fetch('/api/posts');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.posts)) {
+          syncLocalPosts(data.posts);
+          renderPosts();
+        }
+      } catch (e) {
+        console.error('Cloud DB Load Error:', e);
+      }
     }
 
     function renderPosts() {
@@ -283,21 +308,32 @@ const site = await getSiteData();
 
       // Rebind Delete Post Listeners
       document.querySelectorAll('.delete-post-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
           if (!id || !confirm('Are you sure you want to delete this post?')) return;
 
           let currentPosts = getLocalPosts();
           currentPosts = currentPosts.filter((p: any) => p.id !== id);
-          localStorage.setItem('tka_posts', JSON.stringify(currentPosts));
+          saveLocalPosts(currentPosts);
           renderPosts();
+
+          // Persist deletion to the Cloudflare KV database
+          try {
+            await fetch('/api/posts', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id })
+            });
+          } catch (err) {
+            console.error('Cloud DB Delete Error:', err);
+          }
         });
       });
     }
 
     // Create Post Handler
     const createPostForm = document.getElementById('createPostForm') as HTMLFormElement;
-    createPostForm?.addEventListener('submit', (e) => {
+    createPostForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const title = (document.getElementById('postTitle') as HTMLInputElement).value.trim();
@@ -333,14 +369,19 @@ const site = await getSiteData();
 
       const posts = getLocalPosts();
       posts.unshift(newPost);
-      localStorage.setItem('tka_posts', JSON.stringify(posts));
+      saveLocalPosts(posts);
+      renderPosts();
 
-      // Post live to Cloudflare Serverless Function /api/posts
-      fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPost)
-      }).catch(err => console.error('Cloudflare Worker Post Error:', err));
+      // Post live to the Cloudflare KV-backed serverless function /api/posts
+      try {
+        await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPost)
+        });
+      } catch (err) {
+        console.error('Cloudflare Worker Post Error:', err);
+      }
 
       alert('✓ Post published successfully live to Cloudflare!');
       createPostForm.reset();
@@ -351,5 +392,6 @@ const site = await getSiteData();
     // Initial render call on page load
     renderCategories();
     renderPosts();
+    loadCloudPosts();
   </script>
 </BaseLayout>

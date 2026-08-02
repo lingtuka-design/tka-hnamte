@@ -5,6 +5,9 @@ node_modules/
 dist/
 .astro/
 
+# wrangler local state
+.wrangler/
+
 # environment variables
 .env
 .env.*

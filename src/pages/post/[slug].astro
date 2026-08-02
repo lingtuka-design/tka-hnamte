@@ -71,22 +71,38 @@ if (!post) {
   // Hydrate single post dynamically if created in client admin
   const pathParts = window.location.pathname.split('/');
   const slug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
-  const storedPosts = localStorage.getItem('tka_posts');
-  if (storedPosts && slug) {
-    try {
-      const posts = JSON.parse(storedPosts);
-      const match = posts.find((p: any) => p.slug === slug);
-      if (match) {
-        const titleEl = document.querySelector('.single-post-header h1');
-        const contentEl = document.querySelector('.post-content');
-        const imgEl = document.querySelector('.post-image-wrap img') as HTMLImageElement;
-        const dateBadge = document.querySelector('.date-badge');
 
-        if (titleEl) titleEl.textContent = match.title;
-        if (contentEl) contentEl.textContent = match.content;
-        if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
-        if (dateBadge) dateBadge.textContent = `${match.day} ${match.month}`;
-      }
-    } catch (e) {}
+  function applyMatch(match: any) {
+    const titleEl = document.querySelector('.single-post-header h1');
+    const contentEl = document.querySelector('.post-content');
+    const imgEl = document.querySelector('.post-image-wrap img') as HTMLImageElement;
+    const dateBadge = document.querySelector('.date-badge');
+
+    if (titleEl) titleEl.textContent = match.title;
+    if (contentEl) contentEl.textContent = match.content || match.excerpt || '';
+    if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
+    if (dateBadge) dateBadge.textContent = `${match.day} ${match.month}`;
+  }
+
+  if (slug) {
+    const storedPosts = localStorage.getItem('tka_posts');
+    if (storedPosts) {
+      try {
+        const posts = JSON.parse(storedPosts);
+        const match = posts.find((p: any) => p.slug === slug);
+        if (match) applyMatch(match);
+      } catch (e) {}
+    }
+
+    // Fall back to the KV-backed cloud database for any post not in localStorage
+    fetch('/api/posts')
+      .then(res => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.posts)) {
+          const match = data.posts.find((p: any) => p.slug === slug);
+          if (match) applyMatch(match);
+        }
+      })
+      .catch(() => {});
   }
 </script>

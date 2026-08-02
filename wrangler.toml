@@ -1,0 +1,7 @@
+name = "tka-blog"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "./dist"
+
+[[kv_namespaces]]
+binding = "TKA_BLOG_KV"
+id = "7c6878dfaaa749a2bf808b979a08e45e"

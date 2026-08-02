@@ -1,55 +1,107 @@
 // Cloudflare Pages Function: /api/posts
+// Durable post persistence backed by the TKA_BLOG_KV namespace.
 
-let memoryPosts = [];
+const POSTS_KEY = 'tka_posts';
+const CATEGORIES_KEY = 'tka_categories';
 
-export async function onRequestGet(context) {
-  // If KV is bound to context.env.TKA_BLOG_KV
-  if (context.env && context.env.TKA_BLOG_KV) {
-    try {
-      const stored = await context.env.TKA_BLOG_KV.get('tka_posts', { type: 'json' });
-      if (stored) {
-        return new Response(JSON.stringify(stored), {
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        });
-      }
-    } catch (e) {}
-  }
-
-  return new Response(JSON.stringify(memoryPosts), {
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   });
 }
 
+function cors() {
+  return new Response(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
+function isAdmin(context) {
+  const cookie = context.request.headers.get('Cookie') || '';
+  return cookie.includes('admin_session=authenticated_token_admin_777');
+}
+
+async function readPosts(context) {
+  if (context.env && context.env.TKA_BLOG_KV) {
+    const stored = await context.env.TKA_BLOG_KV.get(POSTS_KEY, { type: 'json' });
+    if (Array.isArray(stored)) return stored;
+  }
+  return [];
+}
+
+async function writePosts(context, posts) {
+  if (context.env && context.env.TKA_BLOG_KV) {
+    await context.env.TKA_BLOG_KV.put(POSTS_KEY, JSON.stringify(posts));
+    return true;
+  }
+  return false;
+}
+
+async function readCategories(context) {
+  if (context.env && context.env.TKA_BLOG_KV) {
+    const stored = await context.env.TKA_BLOG_KV.get(CATEGORIES_KEY, { type: 'json' });
+    if (Array.isArray(stored) && stored.length > 0) return stored;
+  }
+  return [{ id: 'cat-1', name: 'Article', slug: 'article' }];
+}
+
+async function writeCategories(context, categories) {
+  if (context.env && context.env.TKA_BLOG_KV) {
+    await context.env.TKA_BLOG_KV.put(CATEGORIES_KEY, JSON.stringify(categories));
+    return true;
+  }
+  return false;
+}
+
+export async function onRequestGet(context) {
+  const posts = await readPosts(context);
+  return json({ posts, categories: await readCategories(context) });
+}
+
 export async function onRequestPost(context) {
+  if (!isAdmin(context)) return json({ error: 'Unauthorized' }, 401);
+
   try {
     const postData = await context.request.json();
-    if (context.env && context.env.TKA_BLOG_KV) {
-      let current = (await context.env.TKA_BLOG_KV.get('tka_posts', { type: 'json' })) || [];
-      current.unshift(postData);
-      await context.env.TKA_BLOG_KV.put('tka_posts', JSON.stringify(current));
-      return new Response(JSON.stringify({ success: true, posts: current }), {
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-      });
+    if (!postData || !postData.title) return json({ error: 'Post title is required' }, 400);
+
+    const posts = await readPosts(context);
+    const existing = posts.findIndex((p) => p && p.id === postData.id);
+    if (existing !== -1) {
+      posts[existing] = { ...posts[existing], ...postData };
+    } else {
+      posts.unshift(postData);
     }
 
-    memoryPosts.unshift(postData);
-    return new Response(JSON.stringify({ success: true, posts: memoryPosts }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-    });
+    const saved = await writePosts(context, posts);
+    return json({ success: true, saved, posts });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-    });
+    return json({ error: e.message }, 500);
+  }
+}
+
+export async function onRequestDelete(context) {
+  if (!isAdmin(context)) return json({ error: 'Unauthorized' }, 401);
+
+  try {
+    const body = await context.request.json();
+    const id = body && body.id;
+    if (!id) return json({ error: 'Post ID required' }, 400);
+
+    const posts = await readPosts(context);
+    const updated = posts.filter((p) => p && p.id !== id);
+    const saved = await writePosts(context, updated);
+    return json({ success: true, saved, posts: updated });
+  } catch (e) {
+    return json({ error: e.message }, 500);
   }
 }
 
 export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    }
-  });
+  return cors();
 }
