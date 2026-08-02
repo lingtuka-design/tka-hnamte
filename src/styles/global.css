@@ -812,8 +812,17 @@ img {
     gap: 10px;
   }
 
+  .header-social {
+    display: none;
+  }
+
   .theme-toggle-btn {
-    position: static;
-    margin-bottom: 10px;
+    position: fixed;
+    top: 8px;
+    right: 12px;
+    margin-bottom: 0;
+    z-index: 100;
+    background-color: var(--bg-card);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   }
 }
