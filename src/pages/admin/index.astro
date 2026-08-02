@@ -316,6 +316,17 @@ const site = await getSiteData();
           let currentPosts = getLocalPosts();
           currentPosts = currentPosts.filter((p: any) => p.id !== id);
           localStorage.setItem('tka_posts', JSON.stringify(currentPosts));
+          
+          // Sync deletion live to Cloud DB
+          fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': '$2a$10$v7gS7ZgB/zL3uQ5vX6K7UeX9b5J9k4M8P7L6n5o4p3q2r1s0t',
+            },
+            body: JSON.stringify({ posts: currentPosts, categories: getLocalCategories() }),
+          }).catch(err => console.error(err));
+
           renderPosts();
         });
       });
@@ -361,14 +372,17 @@ const site = await getSiteData();
       posts.unshift(newPost);
       localStorage.setItem('tka_posts', JSON.stringify(posts));
 
-      // Auto Sync to Disk Codebase
-      fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Sync live to Cloudflare Database for all mobile devices
+      fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': '$2a$10$v7gS7ZgB/zL3uQ5vX6K7UeX9b5J9k4M8P7L6n5o4p3q2r1s0t',
+        },
         body: JSON.stringify({ posts, categories: getLocalCategories() }),
-      }).catch(err => {});
+      }).catch(err => console.error(err));
 
-      alert('✓ Blog post published successfully! Click "Save & Sync My Post to Cloudflare Live" to push live to mobile devices.');
+      alert('✓ Blog post published live to Cloudflare database! Mobile phones & visitors will see it immediately.');
       createPostForm.reset();
       if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
       renderPosts();

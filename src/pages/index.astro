@@ -25,19 +25,28 @@ const site = await getSiteData();
 </BaseLayout>
 
 <script>
-  // Purge old sample posts from browser cache if present
-  let storedPosts = localStorage.getItem('tka_posts');
-  if (storedPosts && (storedPosts.includes('tourist-destination') || storedPosts.includes('post-1') || storedPosts.includes('post-101') || storedPosts.includes('unsplash.com') || storedPosts.includes('hnathawh-zak-suh'))) {
-    localStorage.removeItem('tka_posts');
-    storedPosts = null;
-  }
+  // Real-time Cloud Database Feed Hydration for all visitors
+  async function loadCloudFeed() {
+    const feedContainer = document.getElementById('postsFeedContainer');
+    if (!feedContainer) return;
 
-  if (storedPosts) {
     try {
-      const posts = JSON.parse(storedPosts);
-      const feedContainer = document.getElementById('postsFeedContainer');
+      let posts = [];
+      const res = await fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30/latest');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.record && Array.isArray(data.record.posts)) {
+          posts = data.record.posts;
+          localStorage.setItem('tka_posts', JSON.stringify(posts));
+        }
+      }
 
-      if (feedContainer && posts.length > 0) {
+      if (posts.length === 0) {
+        const stored = localStorage.getItem('tka_posts');
+        if (stored) posts = JSON.parse(stored);
+      }
+
+      if (posts.length > 0) {
         feedContainer.innerHTML = posts.map((post: any) => `
           <article class="post-card">
             <div class="post-header">
@@ -47,13 +56,13 @@ const site = await getSiteData();
               </div>
               <div class="post-title-link">
                 <h2 class="post-title">
-                  <a href="/post/${post.slug}">${post.title}</a>
+                  <a href="/post/read?slug=${post.slug}">${post.title}</a>
                 </h2>
               </div>
             </div>
 
             <div class="post-image-wrap">
-              <a href="/post/${post.slug}">
+              <a href="/post/read?slug=${post.slug}">
                 <img src="${post.featuredImage}" alt="${post.title}" loading="lazy" />
               </a>
             </div>
@@ -61,7 +70,7 @@ const site = await getSiteData();
             <p class="post-excerpt">${post.excerpt}</p>
 
             <div class="post-footer">
-              <a href="/post/${post.slug}" class="read-more">
+              <a href="/post/read?slug=${post.slug}" class="read-more">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -74,7 +83,17 @@ const site = await getSiteData();
             </div>
           </article>
         `).join('');
+      } else {
+        feedContainer.innerHTML = `
+          <div style="padding: 60px 0; text-align: center;">
+            <p style="color: var(--text-muted); font-size: 1.1rem;">No blog posts published yet.</p>
+          </div>
+        `;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
   }
+
+  loadCloudFeed();
 </script>
