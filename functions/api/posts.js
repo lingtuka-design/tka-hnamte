@@ -70,6 +70,8 @@ export async function onRequestPost(context) {
     const postData = await context.request.json();
     if (!postData || !postData.title) return json({ error: 'Post title is required' }, 400);
 
+    if (!postData.id) postData.id = `post-${Date.now()}`;
+
     const posts = await readPosts(context);
     const existing = posts.findIndex((p) => p && p.id === postData.id);
     if (existing !== -1) {
@@ -90,11 +92,11 @@ export async function onRequestDelete(context) {
 
   try {
     const body = await context.request.json();
-    const id = body && body.id;
+    const id = body && (body.id || body.slug);
     if (!id) return json({ error: 'Post ID required' }, 400);
 
     const posts = await readPosts(context);
-    const updated = posts.filter((p) => p && p.id !== id);
+    const updated = posts.filter((p) => p && p.id !== id && p.slug !== id);
     const saved = await writePosts(context, updated);
     return json({ success: true, saved, posts: updated });
   } catch (e) {
