@@ -17,35 +17,6 @@ const site = await getSiteData();
       <button id="logoutBtn" class="admin-btn admin-btn-danger" style="font-size: 0.85rem;">Logout</button>
     </div>
 
-    <!-- Permanent Deploy & Mobile Sync Box -->
-    <div class="admin-card" style="background-color: var(--bg-alt); border: 2px solid var(--accent-blue);">
-      <h2 style="font-size: 1.2rem; margin-bottom: 8px; color: var(--text-heading);">
-        📲 Publish My Posts Live to Mobile Phones & Cloudflare
-      </h2>
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
-        Click this button to save your post permanently into the site codebase so all visitors & mobile phones can see it on <code>https://tka-blog.pages.dev</code>!
-      </p>
-      <button id="syncDiskBtn" class="admin-btn" style="background-color: #10b981; font-size: 0.95rem; padding: 12px 24px;">
-        🚀 Save & Sync My Post to Cloudflare Live
-      </button>
-      <span id="syncStatusMsg" style="font-size: 0.85rem; font-weight: 700; margin-left: 12px;"></span>
-    </div>
-
-    <!-- Cloudflare R2 Image Upload Config & Preview -->
-    <div class="admin-card">
-      <h2 style="font-size: 1.2rem; margin-bottom: 14px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        ⚡ Cloudflare R2 Image Storage Settings
-      </h2>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
-        Configure your Cloudflare R2 Public Bucket domain (e.g. <code>https://pub-xxxxxx.r2.dev</code> or custom domain) for image hosting.
-      </p>
-      <div style="display: flex; gap: 12px;">
-        <input type="text" id="r2PublicDomain" class="admin-input" placeholder="e.g. https://pub-123456789.r2.dev" style="flex-grow: 1;" />
-        <button id="saveR2DomainBtn" class="admin-btn">Save R2 Setting</button>
-      </div>
-      <span id="r2StatusMsg" style="font-size: 0.8rem; color: #10b981; display: block; margin-top: 6px;"></span>
-    </div>
-
     <!-- Create Post Section -->
     <div class="admin-card">
       <h2 style="font-size: 1.2rem; margin-bottom: 18px; color: var(--text-heading); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
@@ -157,51 +128,6 @@ const site = await getSiteData();
       document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
       try { await fetch('/api/auth', { method: 'DELETE' }); } catch (err) {}
       window.location.href = '/admin/login/';
-    });
-
-    // Sync Posts to Disk & Codebase
-    document.getElementById('syncDiskBtn')?.addEventListener('click', async () => {
-      const syncStatusMsg = document.getElementById('syncStatusMsg');
-      if (syncStatusMsg) {
-        syncStatusMsg.textContent = 'Saving posts to codebase...';
-        syncStatusMsg.style.color = '#3b82f6';
-      }
-
-      const posts = getLocalPosts();
-      const categories = getLocalCategories();
-
-      try {
-        const res = await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ posts, categories }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          if (syncStatusMsg) {
-            syncStatusMsg.textContent = '✓ Saved to codebase! You can now deploy live.';
-            syncStatusMsg.style.color = '#10b981';
-          }
-          alert('✓ Post saved to codebase successfully! I will now trigger the live deployment to Cloudflare & GitHub so your mobile phone sees it!');
-        } else {
-          alert('Failed to save to codebase.');
-        }
-      } catch (err) {
-        alert('Make sure your local dev server (npm run dev) is running on your computer!');
-      }
-    });
-
-    // Cloudflare R2 Domain Config
-    const r2Input = document.getElementById('r2PublicDomain') as HTMLInputElement;
-    const r2StatusMsg = document.getElementById('r2StatusMsg') as HTMLSpanElement;
-    if (r2Input) {
-      r2Input.value = localStorage.getItem('r2_domain') || '';
-    }
-    document.getElementById('saveR2DomainBtn')?.addEventListener('click', () => {
-      if (r2Input) {
-        localStorage.setItem('r2_domain', r2Input.value.trim());
-        if (r2StatusMsg) r2StatusMsg.textContent = '✓ Cloudflare R2 Domain saved successfully!';
-      }
     });
 
     // Category State Management (LocalStorage + Seed Fallback)
