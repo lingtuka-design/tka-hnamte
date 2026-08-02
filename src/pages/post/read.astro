@@ -48,10 +48,24 @@ const defaultPost = posts[0] || {
           <strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong>
         </div>
 
-        <!-- Comments Section Placeholder -->
-        <section style="background-color: var(--bg-alt); padding: 24px; border-radius: 8px; border: 1px solid var(--border-color);">
-          <h3 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--text-heading);">Comments</h3>
-          <p style="font-size: 0.9rem; color: var(--text-muted);">No comments yet. Be the first to share your thoughts!</p>
+        <!-- Comments Section -->
+        <section id="commentsSection" style="background-color: var(--bg-alt); padding: 24px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 40px;">
+          <h3 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--text-heading);">
+            Comments <span id="commentsCount" style="font-size: 0.9rem; color: var(--text-muted);"></span>
+          </h3>
+
+          <div id="commentsList" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+            <!-- Dynamic Comments Rendered Here -->
+          </div>
+
+          <form id="commentForm" style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="text" id="commentUsername" class="admin-input" placeholder="Your username (no registration needed)" maxlength="30" required style="max-width: 320px;" />
+            <textarea id="commentContent" class="admin-textarea" placeholder="Write your comment..." maxlength="2000" rows="3" required></textarea>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button type="submit" class="admin-btn">Post Comment</button>
+              <span id="commentStatus" style="font-size: 0.85rem; color: var(--accent-blue);"></span>
+            </div>
+          </form>
         </section>
       </div>
     </article>
@@ -159,7 +173,10 @@ const defaultPost = posts[0] || {
     // on the server round-trip.
     const cached = getCombinedPosts();
     const cachedMatch = cached.find((p: any) => p.slug === slug || p.id === slug);
-    if (cachedMatch) applyPost(cachedMatch);
+    if (cachedMatch) {
+      applyPost(cachedMatch);
+      startComments(cachedMatch.slug || slug);
+    }
 
     // Sync the authoritative version from the KV-backed cloud in the background.
     let allPosts = [];
@@ -190,10 +207,127 @@ const defaultPost = posts[0] || {
         } catch (e) {}
       }
       applyPost(match);
+      startComments(match.slug || slug);
     } else if (!cachedMatch) {
       showMissing();
     }
   }
+
+  // ---------- Comments ----------
+  let commentsStarted = false;
+  let currentCommentSlug = '';
+
+  function startComments(postSlug: string) {
+    if (commentsStarted || !postSlug) return;
+    commentsStarted = true;
+    loadComments(postSlug);
+  }
+
+  function escapeHtml(text: string): string {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function isCommentAdmin() {
+    return localStorage.getItem('admin_logged_in') === 'true' || document.cookie.includes('admin_session=');
+  }
+
+  async function loadComments(postSlug: string) {
+    currentCommentSlug = postSlug;
+    const commentsList = document.getElementById('commentsList');
+    if (!commentsList) return;
+    commentsList.innerHTML = '<p style="font-size: 0.9rem; color: var(--text-muted);">Loading comments...</p>';
+
+    let comments: any[] = [];
+    try {
+      const res = await fetch(`/api/comments?slug=${encodeURIComponent(postSlug)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.comments)) comments = data.comments;
+      }
+    } catch (e) {}
+
+    renderComments(comments);
+  }
+
+  function renderComments(comments: any[]) {
+    const commentsList = document.getElementById('commentsList');
+    const commentsCountEl = document.getElementById('commentsCount');
+    if (!commentsList) return;
+    if (commentsCountEl) commentsCountEl.textContent = `(${comments.length})`;
+
+    if (comments.length === 0) {
+      commentsList.innerHTML = '<p style="font-size: 0.9rem; color: var(--text-muted);">No comments yet. Be the first to share your thoughts!</p>';
+      return;
+    }
+
+    const admin = isCommentAdmin();
+    commentsList.innerHTML = comments.map((c: any) => `
+      <div class="comment-item" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+          <strong style="font-size: 0.9rem; color: var(--text-heading);">${escapeHtml(c.username || 'Anonymous')}</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">${c.month || 'Aug'} ${c.day || '01'}</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-main); margin: 0;">${escapeHtml(c.content || '')}</p>
+        ${admin ? `<button class="delete-comment-btn" data-id="${c.id}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem; font-weight: 700; margin-top: 8px;">Delete</button>` : ''}
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.delete-comment-btn').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+        if (!id || !confirm('Delete this comment?')) return;
+        try {
+          await fetch('/api/comments', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          await loadComments(currentCommentSlug);
+        } catch (err) {
+          console.error('Comment Delete Error:', err);
+        }
+      });
+    });
+  }
+
+  const commentUsernameEl = document.getElementById('commentUsername') as HTMLInputElement;
+  const commentContentEl = document.getElementById('commentContent') as HTMLTextAreaElement;
+  const commentStatusEl = document.getElementById('commentStatus') as HTMLSpanElement;
+
+  const savedName = localStorage.getItem('tka_commenter_name');
+  if (savedName && commentUsernameEl) commentUsernameEl.value = savedName;
+
+  document.getElementById('commentForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!commentUsernameEl || !commentContentEl) return;
+    const username = commentUsernameEl.value.trim();
+    const content = commentContentEl.value.trim();
+    if (!currentCommentSlug || !username || !content) return;
+
+    if (commentStatusEl) commentStatusEl.textContent = 'Posting...';
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: currentCommentSlug, username, content })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (commentStatusEl) commentStatusEl.textContent = data.error || 'Could not post comment.';
+        return;
+      }
+      localStorage.setItem('tka_commenter_name', username);
+      if (commentContentEl) commentContentEl.value = '';
+      if (commentStatusEl) commentStatusEl.textContent = '';
+      await loadComments(currentCommentSlug);
+    } catch (err) {
+      if (commentStatusEl) commentStatusEl.textContent = 'Could not post comment.';
+    }
+  });
 
   renderCloudArticle();
 </script>
