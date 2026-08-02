@@ -17,165 +17,91 @@
   "categories": [
     {
       "id": "cat-1",
+      "name": "Football",
+      "slug": "football"
+    },
+    {
+      "id": "cat-2",
+      "name": "Music",
+      "slug": "music"
+    },
+    {
+      "id": "cat-3",
       "name": "Photo",
       "slug": "photo"
     },
     {
-      "id": "cat-2",
+      "id": "cat-4",
       "name": "Hobby",
       "slug": "hobby"
-    },
-    {
-      "id": "cat-3",
-      "name": "Food",
-      "slug": "food"
     }
   ],
   "posts": [
     {
-      "id": "post-1",
-      "slug": "tourist-destination-visit-vacation-india",
-      "title": "The tourist destination that you must visit while on vacation in India",
-      "date": "2026-06-16",
-      "day": "16",
-      "month": "Jun",
-      "category": "Travel",
-      "categorySlug": "travel",
-      "featuredImage": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
-      "excerpt": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into...",
-      "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n### Why India Should Be On Your Bucket List\nFrom the majesty of historic architecture to the vibrant culture and serene mountain peaks, traveling across India provides an unforgettable experience for every photography and culture enthusiast. Whether you are exploring ancient heritage sites or capturing the industrious spirit of local workshops, every corner tells a compelling story.",
+      "id": "post-101",
+      "slug": "arsenal-premier-league-season-thlirna",
+      "title": "Arsenal & Premier League Season Thlirna",
+      "date": "2026-08-01",
+      "day": "01",
+      "month": "Aug",
+      "category": "Football",
+      "categorySlug": "football",
+      "featuredImage": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
+      "excerpt": "Football hi ka ngaina viau a, a bik takin Arsenal inkhel hi ka en peih lehzual a. Season thar atan beisei a sang leh hle...",
+      "content": "Football hi ka ngaina viau a, a bik takin Arsenal inkhel hi ka en peih lehzual a. Season tin hian match hmuhnawm leh suspense sang tak nen Arsenal inkhel hi hmaih phal lova en ṭhin a ni.\n\nSquad depth leh tactical setup-ah pawh hmangaihtu te tan beiseina sang tak a awm a, match tin hi khelmual chhunga passion leh spirit hmuhnawm ber ber te an ni.",
       "trending": true,
+      "views": 42,
       "commentsCount": 0,
       "tags": [
-        "India",
-        "Vacation",
-        "Travel",
-        "Photography"
+        "Arsenal",
+        "Football",
+        "Sports"
       ]
     },
     {
-      "id": "post-2",
-      "slug": "tours-visiting-classic-cars-charming-unique",
-      "title": "Tours visiting classic cars that are charming and unique",
-      "date": "2026-06-16",
-      "day": "16",
-      "month": "Jun",
-      "category": "Hobby",
-      "categorySlug": "hobby",
-      "featuredImage": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
-      "excerpt": "Discovering classic vintage cars in pristine condition is a true joy for hobbyists and collectors around the world. Here are our top vintage automotive destinations and tours...",
-      "content": "Discovering classic vintage cars in pristine condition is a true joy for hobbyists and collectors around the world. Here are our top vintage automotive destinations and tours.\n\nClassic automobiles represent an era of distinct design craftsmanship and mechanical beauty. Exploring curated classic car shows and private restoration garages offers rare insights into vintage motor history.",
+      "id": "post-102",
+      "slug": "1980s-rock-music-classics",
+      "title": "1980's Rock Music: Timeless Guitars & Riffs",
+      "date": "2026-07-28",
+      "day": "28",
+      "month": "Jul",
+      "category": "Music",
+      "categorySlug": "music",
+      "featuredImage": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
+      "excerpt": "Tun thlengin 1980's Rock Music kha ka la tuipui deuh ber. Classic guitar solos leh timeless rock energy...",
+      "content": "Tun thlengin 1980's Rock Music kha ka la tuipui deuh ber.\n\nHeavy guitar riffs, melodic guitar solos, leh vocals sang leh thiltihthei tak tak te kha tun thleng hian ka la ngaithla fo ṭhin. 80s rock generation-a music production leh organic sound-te hi a aiawh zo tur hi a awm meuh lo a ni.",
       "trending": true,
+      "views": 38,
       "commentsCount": 0,
       "tags": [
-        "Cars",
-        "Vintage",
-        "Hobby"
+        "Rock",
+        "Music",
+        "80s"
       ]
     },
     {
-      "id": "post-3",
-      "slug": "nyc-parks-commissioner-experience-of-place",
-      "title": "The N.Y.C. Parks Commissioner on the Experience of Place",
-      "date": "2026-06-16",
-      "day": "16",
-      "month": "Jun",
+      "id": "post-103",
+      "slug": "mizoram-nature-outdoor-photography",
+      "title": "Mizoram Nature & Mountain Photography",
+      "date": "2026-07-20",
+      "day": "20",
+      "month": "Jul",
       "category": "Photo",
       "categorySlug": "photo",
-      "featuredImage": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=600&q=80",
-      "excerpt": "An insightful discussion on urban greenery, public spaces, and the architecture of community parks in modern metropolises.",
-      "content": "An insightful discussion on urban greenery, public spaces, and the architecture of community parks in modern metropolises.",
+      "featuredImage": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+      "excerpt": "Mizoram tlang leh mual mawi tak tak te camera hmanga thlalaka han rak chhuah hi nuam ka ti hle...",
+      "content": "Mizoram tlang mual mawi tak tak te, a chhum zing leh tlang dung te hi camera hmanga thlalaka han chawi chhuah hi nuam ka ti hle ṭhin.\n\nOutdoor photography-ah hian zinga ni chhuak leh tlai ni tla a mawi ṭhin em em a, a bik takin tlang sang aṭanga thlir hian rilru a hahdam duh hle.",
       "trending": true,
-      "commentsCount": 2,
+      "views": 25,
+      "commentsCount": 0,
       "tags": [
-        "NYC",
-        "Parks",
-        "Urban"
-      ]
-    },
-    {
-      "id": "post-4",
-      "slug": "village-in-india-clean-living-attraction",
-      "title": "A Village In India Where Clean Living Became a Attraction",
-      "date": "2026-06-16",
-      "day": "16",
-      "month": "Jun",
-      "category": "Travel",
-      "categorySlug": "travel",
-      "featuredImage": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80",
-      "excerpt": "Inside the cleanest village in Asia, where eco-conscious living and sustainable tourism go hand in hand.",
-      "content": "Inside the cleanest village in Asia, where eco-conscious living and sustainable tourism go hand in hand.",
-      "trending": true,
-      "commentsCount": 1,
-      "tags": [
-        "Village",
-        "Clean",
+        "Mizoram",
+        "Photography",
         "Nature"
       ]
-    },
-    {
-      "id": "post-5",
-      "slug": "seeing-beauty-of-mountains-from-clouds",
-      "title": "Seeing the beauty of the mountains from the clouds",
-      "date": "2026-06-16",
-      "day": "16",
-      "month": "Jun",
-      "category": "Photo",
-      "categorySlug": "photo",
-      "featuredImage": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=600&q=80",
-      "excerpt": "High altitude photography capturing mountain mist, sunrise peaks, and atmospheric cloud inversions.",
-      "content": "High altitude photography capturing mountain mist, sunrise peaks, and atmospheric cloud inversions.",
-      "trending": true,
-      "commentsCount": 0,
-      "tags": [
-        "Mountains",
-        "Landscape",
-        "Clouds"
-      ]
-    },
-    {
-      "id": "post-6",
-      "slug": "enjoy-holidays-with-friends-and-relatives",
-      "title": "Enjoy the holidays with friends and relatives",
-      "date": "2026-06-16",
-      "day": "16",
-      "month": "Jun",
-      "category": "Food",
-      "categorySlug": "food",
-      "featuredImage": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-      "excerpt": "Making memories during vacation gatherings with delicious home-cooked feasts and seaside leisure.",
-      "content": "Making memories during vacation gatherings with delicious home-cooked feasts and seaside leisure.",
-      "trending": true,
-      "commentsCount": 4,
-      "tags": [
-        "Holiday",
-        "Friends",
-        "Food"
-      ]
     }
   ],
-  "gallery": [
-    {
-      "id": "g-1",
-      "title": "Travel Luggage",
-      "url": "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=300&q=80"
-    },
-    {
-      "id": "g-2",
-      "title": "Mountain View",
-      "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=300&q=80"
-    },
-    {
-      "id": "g-3",
-      "title": "Craftsman",
-      "url": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=300&q=80"
-    },
-    {
-      "id": "g-4",
-      "title": "Classic Motorcycle",
-      "url": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=300&q=80"
-    }
-  ],
+  "gallery": [],
   "admin": {
     "username": "admin",
     "password": "adminpassword123"
