@@ -263,11 +263,13 @@ const site = await getSiteData();
 
     async function initCloudPosts() {
       try {
-        const res = await fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30/latest');
+        const res = await fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
+          headers: { 'Accept': 'application/json' }
+        });
         if (res.ok) {
           const data = await res.json();
-          if (data.record && Array.isArray(data.record.posts)) {
-            const clean = data.record.posts.filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
+          if (data && Array.isArray(data.posts)) {
+            const clean = data.posts.filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
             localStorage.setItem('tka_posts', JSON.stringify(clean));
             renderPosts();
           }
@@ -310,11 +312,11 @@ const site = await getSiteData();
           localStorage.setItem('tka_posts', JSON.stringify(currentPosts));
           
           // Sync deletion live to Cloud DB
-          fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30', {
+          fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
-              'X-Master-Key': '$2a$10$v7gS7ZgB/zL3uQ5vX6K7UeX9b5J9k4M8P7L6n5o4p3q2r1s0t',
+              'Accept': 'application/json',
             },
             body: JSON.stringify({ posts: currentPosts, categories: getLocalCategories() }),
           }).catch(err => console.error(err));
@@ -365,11 +367,11 @@ const site = await getSiteData();
       localStorage.setItem('tka_posts', JSON.stringify(posts));
 
       // Sync live to Cloudflare Database for all mobile devices
-      fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30', {
+      fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-Master-Key': '$2a$10$v7gS7ZgB/zL3uQ5vX6K7UeX9b5J9k4M8P7L6n5o4p3q2r1s0t',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ posts, categories: getLocalCategories() }),
       }).catch(err => console.error(err));

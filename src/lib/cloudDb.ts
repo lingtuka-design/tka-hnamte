@@ -1,8 +1,6 @@
-// Cloud Database Integration for real-time post & category persistence across all devices
+// Real-time Cloud Database Integration using JSONBlob API endpoint
 
-const CLOUD_DB_ID = "679d20c5ad19ca34f8d55a30"; // Dedicated Cloud DB Bin ID
-const CLOUD_DB_URL = `https://api.jsonbin.io/v3/b/${CLOUD_DB_ID}`;
-const CLOUD_API_KEY = "$2a$10$v7gS7ZgB/zL3uQ5vX6K7UeX9b5J9k4M8P7L6n5o4p3q2r1s0t"; // Live Access Key
+export const CLOUD_DB_URL = "https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd";
 
 export interface PostItem {
   id: string;
@@ -28,32 +26,30 @@ export interface CategoryItem {
   slug: string;
 }
 
-export async function fetchCloudData() {
+export async function getCloudData() {
   try {
-    const res = await fetch(`${CLOUD_DB_URL}/latest`, {
-      headers: {
-        'X-Master-Key': CLOUD_API_KEY,
-      },
+    const res = await fetch(CLOUD_DB_URL, {
+      headers: { 'Accept': 'application/json' },
     });
     if (res.ok) {
-      const json = await res.json();
-      return json.record;
+      const data = await res.json();
+      return data;
     }
   } catch (e) {
     console.error("Cloud DB Fetch Error:", e);
   }
-  return null;
+  return { posts: [], categories: [{ id: 'cat-1', name: 'Article', slug: 'article' }] };
 }
 
-export async function saveCloudData(record: { posts: PostItem[]; categories: CategoryItem[] }) {
+export async function saveCloudData(data: { posts: PostItem[]; categories: CategoryItem[] }) {
   try {
     const res = await fetch(CLOUD_DB_URL, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_API_KEY,
+        'Accept': 'application/json',
       },
-      body: JSON.stringify(record),
+      body: JSON.stringify(data),
     });
     return res.ok;
   } catch (e) {

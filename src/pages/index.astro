@@ -32,11 +32,13 @@ const site = await getSiteData();
 
     try {
       let posts = [];
-      const res = await fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30/latest');
+      const res = await fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
+        headers: { 'Accept': 'application/json' }
+      });
       if (res.ok) {
         const data = await res.json();
-        if (data.record && Array.isArray(data.record.posts)) {
-          posts = data.record.posts;
+        if (data && Array.isArray(data.posts)) {
+          posts = data.posts;
           localStorage.setItem('tka_posts', JSON.stringify(posts));
         }
       }
