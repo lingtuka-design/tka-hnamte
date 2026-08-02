@@ -808,6 +808,7 @@ img {
   }
 
   .nav-container {
+    position: static;
     flex-direction: column;
     gap: 10px;
   }
@@ -820,9 +821,14 @@ img {
     position: absolute;
     top: 20px;
     left: 12px;
+    right: auto;
     margin-bottom: 0;
     z-index: 100;
     background-color: var(--bg-card);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .theme-toggle-btn span:last-child {
+    display: none;
   }
 }
