@@ -29,6 +29,134 @@ const site = await getSiteData();
     return d.textContent || '';
   }
 
+  // ---- Virtual list: only the cards near the viewport exist in the DOM. ----
+  function createVirtualFeed(container: HTMLElement, buildCard: (post: any) => string) {
+    const spacer = document.createElement('div');
+    spacer.style.position = 'relative';
+    spacer.style.width = '100%';
+    const windowEl = document.createElement('div');
+    windowEl.style.position = 'absolute';
+    windowEl.style.top = '0';
+    windowEl.style.left = '0';
+    windowEl.style.right = '0';
+    windowEl.style.willChange = 'transform';
+    windowEl.style.display = 'flex';
+    windowEl.style.flexDirection = 'column';
+    windowEl.style.gap = '45px';
+    spacer.appendChild(windowEl);
+    container.appendChild(spacer);
+
+    let items: any[] = [];
+    let heights: number[] = [];
+    let offsets: number[] = [];
+    let estimate = 520;
+    let start = 0;
+    let end = -1;
+    let rafPending = false;
+    const OVERSCAN = 5;
+
+    function computeOffsets() {
+      offsets.length = items.length + 1;
+      offsets[0] = 0;
+      for (let i = 0; i < items.length; i++) {
+        offsets[i + 1] = offsets[i] + (heights[i] || estimate);
+      }
+    }
+
+    function findStart(scrollTop: number) {
+      let lo = 0;
+      let hi = items.length;
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (offsets[mid] <= scrollTop) lo = mid;
+        else hi = mid - 1;
+      }
+      return lo;
+    }
+
+    function measure() {
+      const cards = windowEl.children;
+      const n = cards.length;
+      let changed = false;
+      for (let i = 0; i < n; i++) {
+        const idx = start + i;
+        const h = i + 1 < n ? (cards[i + 1] as HTMLElement).offsetTop - (cards[i] as HTMLElement).offsetTop : (cards[i] as HTMLElement).offsetHeight;
+        if (Math.abs((heights[idx] || estimate) - h) > 1) {
+          heights[idx] = h;
+          changed = true;
+        }
+      }
+      if (changed) {
+        computeOffsets();
+        spacer.style.height = offsets[items.length] + 'px';
+        const avg = items.length ? offsets[items.length] / items.length : estimate;
+        estimate = Math.round(avg);
+      }
+    }
+
+    function render(force: boolean) {
+      if (!items.length) return;
+      const viewH = window.innerHeight || 0;
+      const scrollTop = window.scrollY || 0;
+      let s = findStart(scrollTop);
+      s = Math.max(0, s - OVERSCAN);
+      let e = s;
+      let acc = 0;
+      while (e < items.length && (acc < viewH + OVERSCAN * estimate || e - s < OVERSCAN * 2)) {
+        acc += heights[e] || estimate;
+        e++;
+      }
+      e = Math.min(items.length, e);
+      if (!force && s === start && e === end) return;
+
+      start = s;
+      end = e;
+      let html = '';
+      for (let i = s; i < e; i++) html += buildCard(items[i]);
+      windowEl.innerHTML = html;
+      windowEl.style.transform = 'translateY(' + (offsets[s] || 0) + 'px)';
+      measure();
+      windowEl.style.transform = 'translateY(' + (offsets[s] || 0) + 'px)';
+    }
+
+    function onScroll() {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => {
+        rafPending = false;
+        render(false);
+      });
+    }
+
+    function onResize() {
+      render(true);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    function setItems(next: any[]) {
+      const prevLen = items.length;
+      items = next;
+      if (next.length !== prevLen) {
+        heights = [];
+        heights.length = next.length;
+      }
+      computeOffsets();
+      spacer.style.height = offsets[items.length] + 'px';
+      const maxScroll = Math.max(0, offsets[items.length] - (window.innerHeight || 0));
+      if ((window.scrollY || 0) > maxScroll + 1) window.scrollTo(0, maxScroll);
+      start = 0;
+      end = -1;
+      render(true);
+    }
+
+    render(true);
+
+    return { setItems };
+  }
+
+
   function postCardHTML(post: any) {
     return `
       <article class="post-card">
@@ -90,12 +218,16 @@ const site = await getSiteData();
   }
 
   const feedContainer = document.getElementById('postsFeedContainer');
+  let feed: { setItems: (posts: any[]) => void } | null = null;
 
   function renderFeed(posts: any[]) {
     if (!feedContainer) return;
     const clean = cleanPosts(posts);
+    const loadingEl = document.getElementById('feedLoading');
     if (clean.length > 0) {
-      feedContainer.innerHTML = clean.map((post: any) => postCardHTML(post)).join('');
+      if (!feed) feed = createVirtualFeed(feedContainer, postCardHTML);
+      feed.setItems(sortByDateDesc(clean));
+      if (loadingEl) loadingEl.remove();
     } else {
       feedContainer.innerHTML = '<div style="padding: 40px 0; text-align: center;"><p>No blog posts published yet.</p></div>';
     }

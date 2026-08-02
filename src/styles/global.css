@@ -304,6 +304,10 @@ img {
   transition: transform 0.3s ease;
 }
 
+.post-card .post-image-wrap img {
+  aspect-ratio: 16 / 9;
+}
+
 .post-image-wrap:hover img {
   transform: scale(1.02);
 }
