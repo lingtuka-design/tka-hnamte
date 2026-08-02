@@ -245,45 +245,37 @@ const site = await getSiteData();
     });
 
     // Posts State Management
-    const initialPosts = [
-      {
-        id: "post-1",
-        slug: "tourist-destination-visit-vacation-india",
-        title: "The tourist destination that you must visit while on vacation in India",
-        date: "2026-06-16",
-        day: "16",
-        month: "Jun",
-        category: "Travel",
-        categorySlug: "travel",
-        featuredImage: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
-        excerpt: "Lorem Ipsum is simply dummy text of the printing and typesetting industry...",
-        content: "Lorem Ipsum is simply dummy text of the printing and typesetting industry...",
-        trending: true
-      },
-      {
-        id: "post-2",
-        slug: "tours-visiting-classic-cars-charming-unique",
-        title: "Tours visiting classic cars that are charming and unique",
-        date: "2026-06-16",
-        day: "16",
-        month: "Jun",
-        category: "Hobby",
-        categorySlug: "hobby",
-        featuredImage: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
-        excerpt: "Discovering classic vintage cars in pristine condition...",
-        content: "Discovering classic vintage cars in pristine condition...",
-        trending: true
-      }
-    ];
-
     function getLocalPosts() {
       const stored = localStorage.getItem('tka_posts');
       if (stored) {
-        try { return JSON.parse(stored); } catch (e) {}
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const clean = parsed.filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
+            localStorage.setItem('tka_posts', JSON.stringify(clean));
+            return clean;
+          }
+        } catch (e) {}
       }
-      localStorage.setItem('tka_posts', JSON.stringify(initialPosts));
-      return initialPosts;
+      localStorage.setItem('tka_posts', JSON.stringify([]));
+      return [];
     }
+
+    async function initCloudPosts() {
+      try {
+        const res = await fetch('https://api.jsonbin.io/v3/b/679d20c5ad19ca34f8d55a30/latest');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.record && Array.isArray(data.record.posts)) {
+            const clean = data.record.posts.filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
+            localStorage.setItem('tka_posts', JSON.stringify(clean));
+            renderPosts();
+          }
+        }
+      } catch (e) {}
+    }
+
+    initCloudPosts();
 
     function renderPosts() {
       const posts = getLocalPosts();
