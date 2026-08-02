@@ -37,8 +37,38 @@ const defaultPost = posts[0] || {
           </h1>
         </header>
 
-        <div class="post-image-wrap" style="margin-bottom: 30px;">
+        <div class="post-image-wrap" style="margin-bottom: 24px;">
           <img id="postFeaturedImg" src="" alt="" style="border-radius: 6px; width: 100%; max-height: 500px; object-fit: cover;" />
+        </div>
+
+        <!-- Like / Share / Views Bar -->
+        <div id="postActionBar" style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;">
+          <button id="likeBtn" type="button" style="display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s ease;">
+            <span id="likeIcon" style="font-size: 1rem;">&#9825;</span>
+            <span id="likeLabel">Like</span>
+            <span id="likeCount" style="color: var(--text-muted); font-weight: 600;"></span>
+          </button>
+
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button id="shareBtn" type="button" style="display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Share
+            </button>
+            <a id="shareFacebook" href="#" target="_blank" rel="noopener" title="Share on Facebook" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); color: #1877F2; text-decoration: none;">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a id="shareX" href="#" target="_blank" rel="noopener" title="Share on X (Twitter)" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); color: #14171A; text-decoration: none;">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a id="shareWhatsApp" href="#" target="_blank" rel="noopener" title="Share on WhatsApp" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); color: #25D366; text-decoration: none;">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </a>
+            <button id="copyShareLink" type="button" title="Copy link" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); background: none; color: var(--text-main); cursor: pointer; font-family: inherit;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+
+          <span id="postViewsCount" style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted);"></span>
         </div>
 
         <div id="postBodyContent" class="post-content" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main); margin-bottom: 40px;">
@@ -328,6 +358,128 @@ const defaultPost = posts[0] || {
       if (commentStatusEl) commentStatusEl.textContent = 'Could not post comment.';
     }
   });
+
+  // ---------- Likes ----------
+  let currentActionSlug = '';
+  let likedByMe = false;
+
+  async function loadLikes(postSlug: string) {
+    currentActionSlug = postSlug;
+    const countEl = document.getElementById('likeCount');
+    const iconEl = document.getElementById('likeIcon');
+    const labelEl = document.getElementById('likeLabel');
+    if (!countEl) return;
+
+    countEl.textContent = '';
+    try {
+      const res = await fetch(`/api/likes?slug=${encodeURIComponent(postSlug)}`);
+      if (res.ok) {
+        const data = await res.json();
+        likedByMe = !!data.liked;
+        if (countEl) countEl.textContent = data.count > 0 ? `(${data.count})` : '';
+        if (labelEl) labelEl.textContent = likedByMe ? 'Liked' : 'Like';
+        if (iconEl) iconEl.innerHTML = likedByMe ? '&#9829;' : '&#9825;';
+        if (likeBtn) {
+          likeBtn.style.color = likedByMe ? '#e0245e' : '';
+          likeBtn.style.borderColor = likedByMe ? '#e0245e' : '';
+        }
+      }
+    } catch (e) {}
+  }
+
+  const likeBtn = document.getElementById('likeBtn') as HTMLButtonElement;
+  likeBtn?.addEventListener('click', async () => {
+    if (likedByMe || !currentActionSlug) return;
+    const labelEl = document.getElementById('likeLabel');
+    if (labelEl) labelEl.textContent = 'Liking...';
+    try {
+      const res = await fetch('/api/likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: currentActionSlug })
+      });
+      if (res.ok) await loadLikes(currentActionSlug);
+    } catch (e) {
+      if (labelEl) labelEl.textContent = 'Like';
+    }
+  });
+
+  // ---------- Views ----------
+  async function registerAndShowViews(postSlug: string) {
+    const viewsEl = document.getElementById('postViewsCount');
+    if (!viewsEl) return;
+    try {
+      const res = await fetch('/api/views', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: postSlug })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (viewsEl) viewsEl.textContent = `${data.views || 0} views`;
+      }
+    } catch (e) {}
+  }
+
+  // ---------- Share ----------
+  function currentShareUrl() {
+    return `${window.location.origin}/post/read?slug=${encodeURIComponent(currentActionSlug || slug || '')}`;
+  }
+
+  function currentShareTitle() {
+    const h = document.getElementById('postTitleHeading');
+    return h && h.textContent ? h.textContent : 'ṬKA Hnamte';
+  }
+
+  function setupShareLinks() {
+    const url = encodeURIComponent(currentShareUrl());
+    const title = encodeURIComponent(currentShareTitle());
+    const fb = document.getElementById('shareFacebook') as HTMLAnchorElement;
+    const x = document.getElementById('shareX') as HTMLAnchorElement;
+    const wa = document.getElementById('shareWhatsApp') as HTMLAnchorElement;
+    if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+    if (x) x.href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+    if (wa) wa.href = `https://wa.me/?text=${title}%20${url}`;
+  }
+
+  document.getElementById('copyShareLink')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(currentShareUrl());
+      const btn = document.getElementById('copyShareLink');
+      if (btn) btn.style.color = '#10b981';
+      setTimeout(() => { if (btn) btn.style.color = ''; }, 1500);
+    } catch (e) {}
+  });
+
+  document.getElementById('shareBtn')?.addEventListener('click', async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: currentShareTitle(),
+          text: currentShareTitle(),
+          url: currentShareUrl()
+        });
+      } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(currentShareUrl());
+        const btn = document.getElementById('shareBtn');
+        const orig = btn ? btn.textContent : '';
+        if (btn) btn.textContent = 'Link copied!';
+        setTimeout(() => { if (btn) btn.textContent = orig; }, 1500);
+      } catch (e) {}
+    }
+  });
+
+  // Hook likes/views/share into the post load flow.
+  const origStartComments = startComments;
+  function startCommentsWithActions(postSlug: string) {
+    origStartComments(postSlug);
+    setupShareLinks();
+    loadLikes(postSlug);
+    registerAndShowViews(postSlug);
+  }
+  startComments = startCommentsWithActions;
 
   renderCloudArticle();
 </script>

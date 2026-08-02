@@ -18,7 +18,13 @@ if (!post) {
 }
 ---
 
-<BaseLayout title={`${post.title} - ṬKA Hnamte`} description={post.excerpt}>
+<BaseLayout
+  title={`${post.title} - ṬKA Hnamte`}
+  description={post.excerpt}
+  ogImage={post.featuredImage}
+  ogUrl={`https://tka-blog.pages.dev/post/${post.slug}`}
+  ogType="article"
+>
   <div class="main-layout">
     <article class="single-post">
       <header class="single-post-header" style="margin-bottom: 25px;">

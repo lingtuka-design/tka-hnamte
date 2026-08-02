@@ -133,6 +133,7 @@ const site = await getSiteData();
             <th>Date</th>
             <th>Title</th>
             <th>Category</th>
+            <th>Views</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -325,6 +326,7 @@ const site = await getSiteData();
             </a>
           </td>
           <td><span style="font-size: 0.8rem; background-color: var(--bg-alt); padding: 2px 8px; border-radius: 4px;">${post.category || 'Article'}</span></td>
+          <td>${post.views || 0}</td>
           <td style="white-space: nowrap;">
             <button class="edit-post-btn admin-btn" data-id="${post.id}" style="padding: 4px 10px; font-size: 0.8rem; margin-right: 6px;">
               Edit

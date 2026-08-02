@@ -58,9 +58,22 @@ async function writeCategories(context, categories) {
   return false;
 }
 
+async function readViews(context) {
+  if (context.env && context.env.TKA_BLOG_KV) {
+    const stored = await context.env.TKA_BLOG_KV.get('tka_views', { type: 'json' });
+    if (stored && typeof stored === 'object') return stored;
+  }
+  return {};
+}
+
 export async function onRequestGet(context) {
   const posts = await readPosts(context);
-  return json({ posts, categories: await readCategories(context) });
+  const views = await readViews(context);
+  const enriched = posts.map((p) => ({
+    ...(p || {}),
+    views: p && p.slug && views[p.slug] != null ? Number(views[p.slug]) : p && p.views,
+  }));
+  return json({ posts: enriched, categories: await readCategories(context) });
 }
 
 export async function onRequestPost(context) {

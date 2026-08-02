@@ -7,9 +7,18 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string;
+  ogUrl?: string;
+  ogType?: string;
 }
 
-const { title = "ṬKA Hnamte - Personal Blog", description = "Personal Blog & Thoughts by ṬKA Hnamte" } = Astro.props;
+const {
+  title = "ṬKA Hnamte - Personal Blog",
+  description = "Personal Blog & Thoughts by ṬKA Hnamte",
+  ogImage = "https://tka-blog.pages.dev/images/tka_hnamte.jpg",
+  ogUrl = "https://tka-blog.pages.dev/",
+  ogType = "website",
+} = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -20,6 +29,18 @@ const { title = "ṬKA Hnamte - Personal Blog", description = "Personal Blog & T
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph / Social Share Meta -->
+    <meta property="og:site_name" content="ṬKA Hnamte" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={ogUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- Dark mode inline script to prevent flash -->
     <script is:inline>
