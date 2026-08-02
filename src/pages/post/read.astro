@@ -21,42 +21,39 @@ const defaultPost = posts[0] || {
 <BaseLayout title={`${defaultPost.title} - ṬKA Hnamte`} description={defaultPost.excerpt}>
   <div class="main-layout">
     <article class="single-post" id="singlePostContainer">
-      <header class="single-post-header" style="margin-bottom: 25px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <span id="postDateBadge" class="date-badge" style="width: auto; height: auto; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">
-            {defaultPost.day} {defaultPost.month}
-          </span>
-          <a id="postCategoryLink" href={`/category/${defaultPost.categorySlug}`} style="font-size: 0.85rem; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">
-            {defaultPost.category}
-          </a>
+      <div id="postLoading" style="padding: 60px 0; text-align: center; color: var(--text-muted);">
+        <p>Loading article...</p>
+      </div>
+
+      <div id="postContentWrap" style="display: none;">
+        <header class="single-post-header" style="margin-bottom: 25px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <span id="postDateBadge" class="date-badge" style="width: auto; height: auto; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">
+            </span>
+            <a id="postCategoryLink" href={`/category/${defaultPost.categorySlug}`} style="font-size: 0.85rem; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">
+            </a>
+          </div>
+          <h1 id="postTitleHeading" style="font-size: 2.2rem; font-weight: 700; color: var(--text-heading); line-height: 1.3;">
+          </h1>
+        </header>
+
+        <div class="post-image-wrap" style="margin-bottom: 30px;">
+          <img id="postFeaturedImg" src="" alt="" style="border-radius: 6px; width: 100%; max-height: 500px; object-fit: cover;" />
         </div>
-        <h1 id="postTitleHeading" style="font-size: 2.2rem; font-weight: 700; color: var(--text-heading); line-height: 1.3;">
-          {defaultPost.title}
-        </h1>
-      </header>
 
-      <div class="post-image-wrap" style="margin-bottom: 30px;">
-        <img id="postFeaturedImg" src={defaultPost.featuredImage} alt={defaultPost.title} style="border-radius: 6px; width: 100%; max-height: 500px; object-fit: cover;" />
+        <div id="postBodyContent" class="post-content" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main); margin-bottom: 40px; white-space: pre-line;">
+        </div>
+
+        <div id="postTagsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
+          <strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong>
+        </div>
+
+        <!-- Comments Section Placeholder -->
+        <section style="background-color: var(--bg-alt); padding: 24px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <h3 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--text-heading);">Comments</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">No comments yet. Be the first to share your thoughts!</p>
+        </section>
       </div>
-
-      <div id="postBodyContent" class="post-content" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main); margin-bottom: 40px; white-space: pre-line;">
-        {defaultPost.content}
-      </div>
-
-      <div id="postTagsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
-        <strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong>
-        {defaultPost.tags && defaultPost.tags.map((tag) => (
-          <span style="background-color: var(--bg-alt); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-color);">
-            #{tag}
-          </span>
-        ))}
-      </div>
-
-      <!-- Comments Section Placeholder -->
-      <section style="background-color: var(--bg-alt); padding: 24px; border-radius: 8px; border: 1px solid var(--border-color);">
-        <h3 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--text-heading);">Comments</h3>
-        <p style="font-size: 0.9rem; color: var(--text-muted);">No comments yet. Be the first to share your thoughts!</p>
-      </section>
     </article>
 
     <Sidebar />
@@ -64,7 +61,8 @@ const defaultPost = posts[0] || {
 </BaseLayout>
 
 <script>
-  // Dynamic client-side reader script
+  // Dynamic client-side reader script — shows a loading state until the
+  // actual post arrives, so stale server content never flashes.
   const urlParams = new URLSearchParams(window.location.search);
   const slug = urlParams.get('slug');
 
@@ -104,6 +102,41 @@ const defaultPost = posts[0] || {
     return seedPosts;
   }
 
+  function applyPost(match: any) {
+    document.title = `${match.title} - ṬKA Hnamte`;
+
+    const loadingEl = document.getElementById('postLoading');
+    const wrapEl = document.getElementById('postContentWrap');
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (wrapEl) wrapEl.style.display = 'block';
+
+    const titleEl = document.getElementById('postTitleHeading');
+    const contentEl = document.getElementById('postBodyContent');
+    const imgEl = document.getElementById('postFeaturedImg') as HTMLImageElement;
+    const dateEl = document.getElementById('postDateBadge');
+    const catLink = document.getElementById('postCategoryLink') as HTMLAnchorElement;
+    const tagsContainer = document.getElementById('postTagsContainer');
+
+    if (titleEl) titleEl.textContent = match.title;
+    if (contentEl) contentEl.textContent = match.content || match.excerpt || '';
+    if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
+    if (dateEl) dateEl.textContent = `${match.day || '01'} ${match.month || 'Aug'}`;
+    if (catLink) {
+      catLink.textContent = match.category || 'Article';
+      catLink.href = `/category/${match.categorySlug || 'article'}`;
+    }
+
+    if (tagsContainer && match.tags && match.tags.length > 0) {
+      tagsContainer.innerHTML = `<strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong> ` +
+        match.tags.map((t: string) => `<span style="background-color: var(--bg-alt); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-color);">#${t}</span>`).join(' ');
+    }
+  }
+
+  function showMissing() {
+    const loadingEl = document.getElementById('postLoading');
+    if (loadingEl) loadingEl.innerHTML = '<p>Post not found.</p>';
+  }
+
   async function renderCloudArticle() {
     if (!slug) return;
 
@@ -125,32 +158,22 @@ const defaultPost = posts[0] || {
     const match = allPosts.find((p: any) => p.slug === slug || p.id === slug);
 
     if (match) {
-      document.title = `${match.title} - ṬKA Hnamte`;
-
-      // Increment view count for Most Read ranking
+      // Increment view count for Most Read ranking (cached locally)
       match.views = (match.views || 0) + 1;
-      localStorage.setItem('tka_posts', JSON.stringify(allPosts));
-      
-      const titleEl = document.getElementById('postTitleHeading');
-      const contentEl = document.getElementById('postBodyContent');
-      const imgEl = document.getElementById('postFeaturedImg') as HTMLImageElement;
-      const dateEl = document.getElementById('postDateBadge');
-      const catLink = document.getElementById('postCategoryLink') as HTMLAnchorElement;
-      const tagsContainer = document.getElementById('postTagsContainer');
-
-      if (titleEl) titleEl.textContent = match.title;
-      if (contentEl) contentEl.textContent = match.content || match.excerpt || '';
-      if (imgEl && match.featuredImage) imgEl.src = match.featuredImage;
-      if (dateEl) dateEl.textContent = `${match.day || '01'} ${match.month || 'Aug'}`;
-      if (catLink) {
-        catLink.textContent = match.category || 'Article';
-        catLink.href = `/category/${match.categorySlug || 'article'}`;
+      const stored = localStorage.getItem('tka_posts');
+      if (stored) {
+        try {
+          const arr = JSON.parse(stored);
+          if (Array.isArray(arr)) {
+            const idx = arr.findIndex((p: any) => p.id === match.id);
+            if (idx >= 0) arr[idx] = match;
+            localStorage.setItem('tka_posts', JSON.stringify(arr));
+          }
+        } catch (e) {}
       }
-
-      if (tagsContainer && match.tags && match.tags.length > 0) {
-        tagsContainer.innerHTML = `<strong style="font-size: 0.9rem; color: var(--text-heading);">Tags:</strong> ` +
-          match.tags.map((t: string) => `<span style="background-color: var(--bg-alt); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-color);">#${t}</span>`).join(' ');
-      }
+      applyPost(match);
+    } else {
+      showMissing();
     }
   }
 

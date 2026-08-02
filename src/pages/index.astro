@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PostCard from '../components/PostCard.astro';
 import Sidebar from '../components/Sidebar.astro';
 import { getPosts, getSiteData } from '../lib/data';
 
@@ -11,13 +10,9 @@ const site = await getSiteData();
 <BaseLayout title={`${site.title} - ${site.tagline}`} description={site.bio}>
   <div class="main-layout">
     <section class="posts-feed" id="postsFeedContainer">
-      {posts.length > 0 ? (
-        posts.map((post) => <PostCard post={post} />)
-      ) : (
-        <div style="padding: 40px 0; text-align: center;">
-          <p>No blog posts published yet.</p>
-        </div>
-      )}
+      <div id="feedLoading" style="padding: 60px 0; text-align: center; color: var(--text-muted);">
+        <p>Loading posts...</p>
+      </div>
     </section>
 
     <Sidebar />
@@ -66,9 +61,19 @@ const site = await getSiteData();
     `;
   }
 
-  function mergePosts(...sources: any[]): any[] {
+  function cleanPosts(posts: any[]): any[] {
+    return (posts || []).filter(
+      (p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique'
+    );
+  }
+
+  function sortByDateDesc(posts: any[]): any[] {
+    return [...posts].sort((a: any, b: any) => String(b.date || '').localeCompare(String(a.date || '')));
+  }
+
+  function mergePosts(cloud: any[], local: any[], ssr: any[]): any[] {
     const map = new Map();
-    for (const list of sources) {
+    for (const list of [cloud, local, ssr]) {
       if (!Array.isArray(list)) continue;
       for (const p of list) {
         if (p && p.id && !map.has(p.id)) map.set(p.id, p);
@@ -77,44 +82,52 @@ const site = await getSiteData();
     return Array.from(map.values());
   }
 
-  async function renderFeed() {
-    const feedContainer = document.getElementById('postsFeedContainer');
+  const feedContainer = document.getElementById('postsFeedContainer');
+
+  function renderFeed(posts: any[]) {
     if (!feedContainer) return;
-
-    try {
-      let ssrPosts = [];
-      const ssrEl = document.getElementById('ssrPosts');
-      if (ssrEl) {
-        try { ssrPosts = JSON.parse(ssrEl.textContent || '[]'); } catch (e) {}
-      }
-
-      let localPosts = [];
-      const stored = localStorage.getItem('tka_posts');
-      if (stored) {
-        try { localPosts = JSON.parse(stored); } catch (e) {}
-      }
-
-      let cloudPosts = [];
-      try {
-        const res = await fetch('/api/posts');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.posts)) cloudPosts = data.posts;
-        }
-      } catch (err) {}
-
-      const allPosts = mergePosts(ssrPosts, cloudPosts, localPosts);
-      localStorage.setItem('tka_posts', JSON.stringify(allPosts));
-
-      const clean = allPosts.filter((p: any) => p && p.title && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique');
-
-      if (clean.length > 0) {
-        feedContainer.innerHTML = clean.map((post: any) => postCardHTML(post)).join('');
-      }
-    } catch (e) {
-      console.error(e);
+    const clean = cleanPosts(posts);
+    if (clean.length > 0) {
+      feedContainer.innerHTML = clean.map((post: any) => postCardHTML(post)).join('');
+    } else {
+      feedContainer.innerHTML = '<div style="padding: 40px 0; text-align: center;"><p>No blog posts published yet.</p></div>';
     }
   }
 
-  renderFeed();
+  async function initFeed() {
+    if (!feedContainer) return;
+
+    let ssrPosts = [];
+    const ssrEl = document.getElementById('ssrPosts');
+    if (ssrEl) {
+      try { ssrPosts = JSON.parse(ssrEl.textContent || '[]'); } catch (e) {}
+    }
+
+    let localPosts = [];
+    const stored = localStorage.getItem('tka_posts');
+    if (stored) {
+      try { localPosts = JSON.parse(stored); } catch (e) {}
+    }
+
+    // Paint instantly from cached posts so no stale server content flashes.
+    if (localPosts.length > 0) {
+      renderFeed(sortByDateDesc(localPosts));
+    }
+
+    // Sync from the KV-backed cloud database (authoritative, newest first).
+    let cloudPosts = [];
+    try {
+      const res = await fetch('/api/posts');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.posts)) cloudPosts = data.posts;
+      }
+    } catch (err) {}
+
+    const allPosts = mergePosts(cloudPosts, localPosts, ssrPosts);
+    localStorage.setItem('tka_posts', JSON.stringify(allPosts));
+    renderFeed(sortByDateDesc(allPosts));
+  }
+
+  initFeed();
 </script>
