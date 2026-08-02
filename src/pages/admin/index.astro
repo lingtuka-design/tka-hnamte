@@ -435,7 +435,14 @@ const site = await getSiteData();
       posts.unshift(newPost);
       localStorage.setItem('tka_posts', JSON.stringify(posts));
 
-      alert('✓ Blog post published successfully!');
+      // Auto Sync to Disk Codebase
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posts, categories: getLocalCategories() }),
+      }).catch(err => {});
+
+      alert('✓ Blog post published successfully! Click "Save & Sync My Post to Cloudflare Live" to push live to mobile devices.');
       createPostForm.reset();
       if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
       renderPosts();
