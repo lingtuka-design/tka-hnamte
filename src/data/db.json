@@ -21,29 +21,7 @@
       "slug": "article"
     }
   ],
-  "posts": [
-    {
-      "id": "post-hnathawh-zak-suh",
-      "slug": "hnathawh-zak-suh",
-      "title": "Hnathawh zak suh",
-      "date": "2026-08-01",
-      "day": "01",
-      "month": "Aug",
-      "category": "Article",
-      "categorySlug": "article",
-      "featuredImage": "/images/hnathawh_zak_suh.jpg",
-      "excerpt": "Khawvel a changkang zel a, thalaite hawiher leh rilru puthmang pawh a inthlak danglam ve zel a. A tha lam a awm laiin a...",
-      "content": "Khawvel a changkang zel a, thalaite hawiher leh rilru puthmang pawh a inthlak danglam ve zel a. A tha lam a awm laiin a inthlahdahna leh hnathawh hreh rilru putna hi thil pawi tak a ni.\n\nHna hi eng hna pawh ni se, hintham taka thawh hi mi gnam tak nihna a ni a, hnathawh zahpui loh hi hmasawnna bul thut a ni. Keini Mizo ṭhalai te tan pawh kut hnathawk emaw, a te ber aṭanga a lian ber thlengin hnathawh hi zahpui tur a ni lova, kut zangthuite hi mi hlawhtling nihna a ni. Hnasiamtu nih leh mahni ke a din hi tum tlat tur a ni.",
-      "trending": true,
-      "views": 7,
-      "commentsCount": 0,
-      "tags": [
-        "Article",
-        "Mizoram",
-        "Work"
-      ]
-    }
-  ],
+  "posts": [],
   "gallery": [],
   "admin": {
     "username": "admin",
