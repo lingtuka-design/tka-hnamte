@@ -41,7 +41,7 @@ const initialMostRead = await getTrendingPosts();
         <div class="trending-item">
           <img src={post.featuredImage} alt={post.title} class="trending-thumb" />
           <div class="trending-info">
-            <a href={`/post/${post.slug}`} class="trending-item-title">{post.title}</a>
+            <a href={`/post/read?slug=${post.slug}`} class="trending-item-title">{post.title}</a>
             <span class="trending-item-date">{post.views || 0} views • {post.month} {post.day}</span>
           </div>
         </div>
@@ -67,7 +67,7 @@ const initialMostRead = await getTrendingPosts();
           <div class="trending-item">
             <img src="${post.featuredImage}" alt="${post.title}" class="trending-thumb" />
             <div class="trending-info">
-              <a href="/post/${post.slug}" class="trending-item-title">${post.title}</a>
+              <a href="/post/read?slug=${post.slug}" class="trending-item-title">${post.title}</a>
               <span class="trending-item-date">${post.views || 0} views • ${post.month} ${post.day}</span>
             </div>
           </div>
