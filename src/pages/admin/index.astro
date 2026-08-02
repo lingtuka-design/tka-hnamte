@@ -268,8 +268,16 @@ const site = await getSiteData();
         });
         if (res.ok) {
           const data = await res.json();
-          if (data && Array.isArray(data.posts)) {
-            const clean = data.posts.filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
+          if (data && Array.isArray(data.posts) && data.posts.length > 0) {
+            const currentLocal = getLocalPosts();
+            const map = new Map();
+            for (const p of currentLocal) {
+              if (p && p.id) map.set(p.id, p);
+            }
+            for (const p of data.posts) {
+              if (p && p.id && !map.has(p.id)) map.set(p.id, p);
+            }
+            const clean = Array.from(map.values()).filter((p: any) => p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique' && p.id !== 'post-1' && p.id !== 'post-2');
             localStorage.setItem('tka_posts', JSON.stringify(clean));
             renderPosts();
           }

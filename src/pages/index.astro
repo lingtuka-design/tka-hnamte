@@ -31,22 +31,36 @@ const site = await getSiteData();
     if (!feedContainer) return;
 
     try {
-      let posts = [];
+      let localPosts = [];
+      const stored = localStorage.getItem('tka_posts');
+      if (stored) {
+        try { localPosts = JSON.parse(stored); } catch (e) {}
+      }
+
+      let cloudPosts = [];
       const res = await fetch('https://jsonblob.com/api/jsonBlob/019fc0a8-9aab-790f-8403-d850497e91dd', {
         headers: { 'Accept': 'application/json' }
       });
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.posts)) {
-          posts = data.posts;
-          localStorage.setItem('tka_posts', JSON.stringify(posts));
+          cloudPosts = data.posts;
         }
       }
 
-      if (posts.length === 0) {
-        const stored = localStorage.getItem('tka_posts');
-        if (stored) posts = JSON.parse(stored);
+      const map = new Map();
+      for (const p of localPosts) {
+        if (p && p.id && p.slug !== 'tourist-destination-visit-vacation-india' && p.slug !== 'tours-visiting-classic-cars-charming-unique') {
+          map.set(p.id, p);
+        }
       }
+      for (const p of cloudPosts) {
+        if (p && p.id && !map.has(p.id)) {
+          map.set(p.id, p);
+        }
+      }
+
+      const posts = Array.from(map.values());
 
       if (posts.length > 0) {
         feedContainer.innerHTML = posts.map((post: any) => `
