@@ -66,12 +66,27 @@ async function readViews(context) {
   return {};
 }
 
+async function readCommentCounts(context) {
+  const counts = {};
+  if (context.env && context.env.TKA_BLOG_KV) {
+    const stored = await context.env.TKA_BLOG_KV.get('tka_comments', { type: 'json' });
+    if (Array.isArray(stored)) {
+      for (const c of stored) {
+        if (c && c.slug) counts[c.slug] = (counts[c.slug] || 0) + 1;
+      }
+    }
+  }
+  return counts;
+}
+
 export async function onRequestGet(context) {
   const posts = await readPosts(context);
   const views = await readViews(context);
+  const commentCounts = await readCommentCounts(context);
   const enriched = posts.map((p) => ({
     ...(p || {}),
     views: p && p.slug && views[p.slug] != null ? Number(views[p.slug]) : p && p.views,
+    commentsCount: p && p.slug && commentCounts[p.slug] != null ? commentCounts[p.slug] : p && p.commentsCount || 0,
   }));
   return json({ posts: enriched, categories: await readCategories(context) });
 }
