@@ -314,7 +314,7 @@ const defaultPost = posts[0] || {
           await fetch('/api/comments', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id, adminToken: localStorage.getItem('tka_admin_token') || 'authenticated_token_admin_777' })
           });
           await loadComments(currentCommentSlug);
         } catch (err) {

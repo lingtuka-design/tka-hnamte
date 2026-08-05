@@ -25,11 +25,12 @@ function cors() {
   });
 }
 
-function isAdmin(context) {
+function isAdmin(context, body) {
   const cookie = context.request.headers.get('Cookie') || '';
   const headerToken = context.request.headers.get('x-admin-token') || '';
-  return cookie.includes('admin_session=authenticated_token_admin_777') ||
-    headerToken === 'authenticated_token_admin_777';
+  if (cookie.includes('admin_session=authenticated_token_admin_777') ||
+      headerToken === 'authenticated_token_admin_777') return true;
+  return !!(body && (body.adminToken === 'authenticated_token_admin_777' || body.token === 'authenticated_token_admin_777'));
 }
 
 async function readCategories(context) {
@@ -45,9 +46,13 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!isAdmin(context)) return json({ error: 'Unauthorized' }, 401);
+  let body = null;
   try {
-    const { name } = await context.request.json();
+    body = await context.request.json();
+  } catch (e) {}
+  if (!isAdmin(context, body)) return json({ error: 'Unauthorized' }, 401);
+  try {
+    const name = body && body.name;
     if (!name || !String(name).trim()) return json({ error: 'Category name is required' }, 400);
     const clean = String(name).trim();
     const cats = await readCategories(context);
@@ -67,9 +72,12 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestDelete(context) {
-  if (!isAdmin(context)) return json({ error: 'Unauthorized' }, 401);
+  let body = null;
   try {
-    const body = await context.request.json();
+    body = await context.request.json();
+  } catch (e) {}
+  if (!isAdmin(context, body)) return json({ error: 'Unauthorized' }, 401);
+  try {
     const id = body && body.id;
     if (!id) return json({ error: 'Category ID required' }, 400);
     const cats = await readCategories(context);

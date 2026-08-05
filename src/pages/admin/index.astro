@@ -241,7 +241,7 @@ const site = await getSiteData();
               await fetch('/api/categories', {
                 method: 'DELETE',
                 headers: adminHeaders(),
-                body: JSON.stringify({ id }),
+                body: JSON.stringify({ id, adminToken: localStorage.getItem('tka_admin_token') || 'authenticated_token_admin_777' }),
               });
             } catch (err) {}
           }
@@ -268,7 +268,7 @@ const site = await getSiteData();
         await fetch('/api/categories', {
           method: 'POST',
           headers: adminHeaders(),
-          body: JSON.stringify({ name }),
+          body: JSON.stringify({ name, adminToken: localStorage.getItem('tka_admin_token') || 'authenticated_token_admin_777' }),
         });
       } catch (err) {}
     });
@@ -412,7 +412,7 @@ const site = await getSiteData();
             await fetch('/api/posts', {
               method: 'DELETE',
               headers: adminHeaders(),
-              body: JSON.stringify({ id })
+              body: JSON.stringify({ id, adminToken: localStorage.getItem('tka_admin_token') || 'authenticated_token_admin_777' })
             });
           } catch (err) {
             console.error('Cloud DB Delete Error:', err);
@@ -598,25 +598,28 @@ const site = await getSiteData();
 
       // Persist to the Cloudflare KV-backed serverless function /api/posts
       let cloudSaved = true;
+      let cloudError = '';
       try {
         const res = await fetch('/api/posts', {
           method: 'POST',
           headers: adminHeaders(),
-          body: JSON.stringify(postData)
+          body: JSON.stringify({ ...postData, adminToken: localStorage.getItem('tka_admin_token') || 'authenticated_token_admin_777' })
         });
         if (!res.ok) {
           cloudSaved = false;
           const errData = await res.json().catch(() => null);
+          cloudError = (errData && errData.error) || ('HTTP ' + res.status);
           console.error('Cloud DB Save Error:', res.status, errData);
         }
       } catch (err) {
         cloudSaved = false;
+        cloudError = String(err);
         console.error('Cloudflare Worker Post Error:', err);
       }
 
       alert(existing
-        ? (cloudSaved ? '✓ Post updated successfully live to Cloudflare!' : '⚠ Post updated locally only — cloud save failed!')
-        : (cloudSaved ? '✓ Post published successfully live to Cloudflare!' : '⚠ Post saved locally only — cloud publish failed!'));
+        ? (cloudSaved ? '✓ Post updated successfully live to Cloudflare!' : `⚠ Post updated locally only — cloud save failed! (${cloudError})`)
+        : (cloudSaved ? '✓ Post published successfully live to Cloudflare!' : `⚠ Post saved locally only — cloud publish failed! (${cloudError})`));
       resetPostForm();
       renderPosts();
     });

@@ -22,11 +22,12 @@ function cors() {
   });
 }
 
-function isAdmin(context) {
+function isAdmin(context, body) {
   const cookie = context.request.headers.get('Cookie') || '';
   const headerToken = context.request.headers.get('x-admin-token') || '';
-  return cookie.includes('admin_session=authenticated_token_admin_777') ||
-    headerToken === 'authenticated_token_admin_777';
+  if (cookie.includes('admin_session=authenticated_token_admin_777') ||
+      headerToken === 'authenticated_token_admin_777') return true;
+  return !!(body && (body.adminToken === 'authenticated_token_admin_777' || body.token === 'authenticated_token_admin_777'));
 }
 
 function getClientIp(context) {
@@ -111,10 +112,13 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestDelete(context) {
-  if (!isAdmin(context)) return json({ error: 'Unauthorized' }, 401);
+  let body = null;
+  try {
+    body = await context.request.json();
+  } catch (e) {}
+  if (!isAdmin(context, body)) return json({ error: 'Unauthorized' }, 401);
 
   try {
-    const body = await context.request.json();
     const id = body && (body.id || body.commentId);
     if (!id) return json({ error: 'Comment ID required' }, 400);
 
