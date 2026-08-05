@@ -54,8 +54,9 @@ if (sessionCookie === 'authenticated_token_admin_777') {
       const password = (document.getElementById('password') as HTMLInputElement).value.trim();
 
       if (username === 'admin' && password === 'adminpassword123') {
-        document.cookie = 'admin_session=authenticated_token_admin_777; path=/; max-age=604800';
+        document.cookie = 'admin_session=authenticated_token_admin_777; path=/; max-age=604800; Secure; SameSite=Lax';
         localStorage.setItem('admin_logged_in', 'true');
+        localStorage.setItem('tka_admin_token', 'authenticated_token_admin_777');
         window.location.href = '/admin/';
         return;
       }
@@ -69,8 +70,9 @@ if (sessionCookie === 'authenticated_token_admin_777') {
 
         const data = await res.json();
         if (res.ok && data.success) {
-          document.cookie = 'admin_session=authenticated_token_admin_777; path=/; max-age=604800';
+          document.cookie = 'admin_session=authenticated_token_admin_777; path=/; max-age=604800; Secure; SameSite=Lax';
           localStorage.setItem('admin_logged_in', 'true');
+          localStorage.setItem('tka_admin_token', 'authenticated_token_admin_777');
           window.location.href = '/admin/';
         } else {
           errorAlert.textContent = data.message || 'Invalid username or password';

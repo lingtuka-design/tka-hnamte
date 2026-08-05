@@ -150,9 +150,19 @@ const site = await getSiteData();
       window.location.href = '/admin/login/';
     }
 
+    // Admin token for authed API calls (works even when cookies are blocked).
+    function adminHeaders(extra?: any) {
+      return {
+        'Content-Type': 'application/json',
+        'x-admin-token': localStorage.getItem('tka_admin_token') || 'authenticated_token_admin_777',
+        ...(extra || {}),
+      };
+    }
+
     // Logout Action
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
       localStorage.removeItem('admin_logged_in');
+      localStorage.removeItem('tka_admin_token');
       document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
       try { await fetch('/api/auth', { method: 'DELETE' }); } catch (err) {}
       window.location.href = '/admin/login/';
@@ -230,7 +240,7 @@ const site = await getSiteData();
             try {
               await fetch('/api/categories', {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: adminHeaders(),
                 body: JSON.stringify({ id }),
               });
             } catch (err) {}
@@ -257,7 +267,7 @@ const site = await getSiteData();
       try {
         await fetch('/api/categories', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: adminHeaders(),
           body: JSON.stringify({ name }),
         });
       } catch (err) {}
@@ -401,7 +411,7 @@ const site = await getSiteData();
           try {
             await fetch('/api/posts', {
               method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
+              headers: adminHeaders(),
               body: JSON.stringify({ id })
             });
           } catch (err) {
@@ -587,17 +597,26 @@ const site = await getSiteData();
       renderPosts();
 
       // Persist to the Cloudflare KV-backed serverless function /api/posts
+      let cloudSaved = true;
       try {
-        await fetch('/api/posts', {
+        const res = await fetch('/api/posts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: adminHeaders(),
           body: JSON.stringify(postData)
         });
+        if (!res.ok) {
+          cloudSaved = false;
+          const errData = await res.json().catch(() => null);
+          console.error('Cloud DB Save Error:', res.status, errData);
+        }
       } catch (err) {
+        cloudSaved = false;
         console.error('Cloudflare Worker Post Error:', err);
       }
 
-      alert(existing ? '✓ Post updated successfully live to Cloudflare!' : '✓ Post published successfully live to Cloudflare!');
+      alert(existing
+        ? (cloudSaved ? '✓ Post updated successfully live to Cloudflare!' : '⚠ Post updated locally only — cloud save failed!')
+        : (cloudSaved ? '✓ Post published successfully live to Cloudflare!' : '⚠ Post saved locally only — cloud publish failed!'));
       resetPostForm();
       renderPosts();
     });

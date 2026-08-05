@@ -211,7 +211,7 @@ const defaultPost = posts[0] || {
     // Sync the authoritative version from the KV-backed cloud in the background.
     let allPosts = [];
     try {
-      const res = await fetch('/api/posts');
+      const res = await fetch('/api/posts', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.posts) && data.posts.length > 0) {

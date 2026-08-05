@@ -7,7 +7,7 @@ const CATEGORIES_KEY = 'tka_categories';
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' },
   });
 }
 
@@ -23,7 +23,9 @@ function cors() {
 
 function isAdmin(context) {
   const cookie = context.request.headers.get('Cookie') || '';
-  return cookie.includes('admin_session=authenticated_token_admin_777');
+  const headerToken = context.request.headers.get('x-admin-token') || '';
+  return cookie.includes('admin_session=authenticated_token_admin_777') ||
+    headerToken === 'authenticated_token_admin_777';
 }
 
 async function readPosts(context) {

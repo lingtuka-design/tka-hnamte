@@ -27,7 +27,9 @@ function cors() {
 
 function isAdmin(context) {
   const cookie = context.request.headers.get('Cookie') || '';
-  return cookie.includes('admin_session=authenticated_token_admin_777');
+  const headerToken = context.request.headers.get('x-admin-token') || '';
+  return cookie.includes('admin_session=authenticated_token_admin_777') ||
+    headerToken === 'authenticated_token_admin_777';
 }
 
 async function readCategories(context) {
