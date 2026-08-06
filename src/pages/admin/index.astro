@@ -145,6 +145,17 @@ const site = await getSiteData();
   </div>
 
   <script>
+    // Force a single reload if this page is a stale cached build, so every
+    // admin always runs the latest save/auth code (fixes "can't publish"
+    // on devices that cached an old admin page).
+    const ADMIN_VERSION = 'v4';
+    try {
+      if (localStorage.getItem('tka_admin_version') !== ADMIN_VERSION) {
+        localStorage.setItem('tka_admin_version', ADMIN_VERSION);
+        location.reload();
+      }
+    } catch (e) {}
+
     // Client-side authentication check
     if (localStorage.getItem('admin_logged_in') !== 'true' && !document.cookie.includes('admin_session=')) {
       window.location.href = '/admin/login/';

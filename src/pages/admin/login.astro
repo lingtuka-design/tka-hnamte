@@ -39,6 +39,15 @@ if (sessionCookie === 'authenticated_token_admin_777') {
   </div>
 
   <script>
+    // Force a single reload if this is a stale cached build.
+    const LOGIN_VERSION = 'v4';
+    try {
+      if (localStorage.getItem('tka_login_version') !== LOGIN_VERSION) {
+        localStorage.setItem('tka_login_version', LOGIN_VERSION);
+        location.reload();
+      }
+    } catch (e) {}
+
     const form = document.getElementById('loginForm') as HTMLFormElement;
     const errorAlert = document.getElementById('errorAlert') as HTMLDivElement;
 
