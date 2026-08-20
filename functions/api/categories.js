@@ -20,7 +20,7 @@ function cors() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, x-admin-token',
     },
   });
 }
@@ -54,6 +54,8 @@ export async function onRequestPost(context) {
   try {
     const name = body && body.name;
     if (!name || !String(name).trim()) return json({ error: 'Category name is required' }, 400);
+    delete body.adminToken;
+    delete body.token;
     const clean = String(name).trim();
     const cats = await readCategories(context);
     const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') || `cat-${Date.now()}`;

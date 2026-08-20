@@ -16,7 +16,7 @@ function cors() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, x-admin-token',
     },
   });
 }
@@ -103,6 +103,9 @@ export async function onRequestPost(context) {
 
   try {
     if (!postData || !postData.title) return json({ error: 'Post title is required' }, 400);
+
+    delete postData.adminToken;
+    delete postData.token;
 
     if (!postData.id) postData.id = `post-${Date.now()}`;
 

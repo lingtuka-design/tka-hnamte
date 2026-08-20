@@ -297,6 +297,14 @@ const site = await getSiteData();
       if (!imageUploadInput.files || imageUploadInput.files.length === 0) return;
 
       const file = imageUploadInput.files[0];
+      if (file.size > 2 * 1024 * 1024) {
+        if (uploadStatus) {
+          uploadStatus.textContent = '⚠ Image too large (max 2MB). Please compress or choose a smaller file.';
+          uploadStatus.style.color = '#ef4444';
+        }
+        imageUploadInput.value = '';
+        return;
+      }
       const r2Domain = localStorage.getItem('r2_domain');
 
       if (uploadStatus) uploadStatus.textContent = 'Processing image file...';
@@ -484,6 +492,11 @@ const site = await getSiteData();
     rteImageFileInput?.addEventListener('change', () => {
       if (!rteImageFileInput.files || rteImageFileInput.files.length === 0) return;
       const file = rteImageFileInput.files[0];
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image too large (max 2MB). Please compress before inserting.');
+        rteImageFileInput.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => {
         const url = ev.target?.result as string;
