@@ -14,6 +14,8 @@ function CategoryComponent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = `${category.toUpperCase()} - ṬKA Hnamte`;
+    
     async function loadCategoryPosts() {
       let allPosts: PostItem[] = [];
       try {

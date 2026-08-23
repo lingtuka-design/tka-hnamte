@@ -9,6 +9,11 @@ export const Route = createFileRoute('/')({
 });
 
 function HomeComponent() {
+  // Reset browser tab title on Home page!
+  useEffect(() => {
+    document.title = "ṬKA HNAMTE - Personal Blog & Thoughts";
+  }, []);
+
   // Synchronous initial state from localStorage for ZERO latency instant paint!
   const [posts, setPosts] = useState<PostItem[]>(() => {
     const stored = localStorage.getItem('tka_posts');

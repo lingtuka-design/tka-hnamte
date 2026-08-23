@@ -21,6 +21,8 @@ function SearchComponent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = q ? `Search: "${q}" - ṬKA Hnamte` : `Search Articles - ṬKA Hnamte`;
+
     async function loadSearchPosts() {
       let allPosts: PostItem[] = [];
       try {
