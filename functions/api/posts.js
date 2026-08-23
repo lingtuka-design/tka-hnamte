@@ -1,5 +1,5 @@
 // Cloudflare Pages Function: /api/posts
-// Durable post persistence backed by the TKA_BLOG_KV namespace.
+// Dual persistence backed by Cloudflare D1 SQL Database & TKA_BLOG_KV namespace.
 
 const POSTS_KEY = 'tka_posts';
 const CATEGORIES_KEY = 'tka_categories';
@@ -30,6 +30,22 @@ function isAdmin(context, body) {
 }
 
 async function readPosts(context) {
+  // Query Cloudflare D1 SQL if bound
+  if (context.env && context.env.DB) {
+    try {
+      const { results } = await context.env.DB.prepare('SELECT * FROM posts ORDER BY date DESC').all();
+      if (Array.isArray(results) && results.length > 0) {
+        return results.map(r => ({
+          ...r,
+          categorySlug: r.category_slug || r.categorySlug,
+          featuredImage: r.featured_image || r.featuredImage,
+          tags: typeof r.tags === 'string' ? JSON.parse(r.tags) : r.tags
+        }));
+      }
+    } catch (e) {}
+  }
+
+  // Fallback to Cloudflare KV
   if (context.env && context.env.TKA_BLOG_KV) {
     const stored = await context.env.TKA_BLOG_KV.get(POSTS_KEY, { type: 'json' });
     if (Array.isArray(stored)) return stored;
@@ -38,11 +54,55 @@ async function readPosts(context) {
 }
 
 async function writePosts(context, posts) {
+  let saved = false;
+
+  // Persist to Cloudflare KV
   if (context.env && context.env.TKA_BLOG_KV) {
     await context.env.TKA_BLOG_KV.put(POSTS_KEY, JSON.stringify(posts));
-    return true;
+    saved = true;
   }
-  return false;
+
+  return saved;
+}
+
+async function writePostToD1(context, post) {
+  if (context.env && context.env.DB) {
+    try {
+      await context.env.DB.prepare(`
+        INSERT INTO posts (id, slug, title, date, day, month, category, category_slug, featured_image, excerpt, content, trending, views)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          title=excluded.title,
+          excerpt=excluded.excerpt,
+          content=excluded.content,
+          featured_image=excluded.featured_image,
+          category=excluded.category,
+          trending=excluded.trending
+      `).bind(
+        post.id,
+        post.slug,
+        post.title,
+        post.date || new Date().toISOString(),
+        post.day || '01',
+        post.month || 'Aug',
+        post.category || 'Article',
+        post.categorySlug || 'article',
+        post.featuredImage || '',
+        post.excerpt || '',
+        post.content || '',
+        post.trending ? 1 : 0,
+        post.views || 0
+      ).run();
+    } catch (e) {}
+  }
+}
+
+async function deletePostFromD1(context, id) {
+  if (context.env && context.env.DB) {
+    try {
+      await context.env.DB.prepare('DELETE FROM posts WHERE id = ? OR slug = ?').bind(id, id).run();
+    } catch (e) {}
+  }
 }
 
 async function readCategories(context) {
@@ -51,14 +111,6 @@ async function readCategories(context) {
     if (Array.isArray(stored) && stored.length > 0) return stored;
   }
   return [{ id: 'cat-1', name: 'Article', slug: 'article' }];
-}
-
-async function writeCategories(context, categories) {
-  if (context.env && context.env.TKA_BLOG_KV) {
-    await context.env.TKA_BLOG_KV.put(CATEGORIES_KEY, JSON.stringify(categories));
-    return true;
-  }
-  return false;
 }
 
 async function readViews(context) {
@@ -117,6 +169,7 @@ export async function onRequestPost(context) {
       posts.unshift(postData);
     }
 
+    await writePostToD1(context, postData);
     const saved = await writePosts(context, posts);
     return json({ success: true, saved, posts });
   } catch (e) {
@@ -135,6 +188,7 @@ export async function onRequestDelete(context) {
     const id = body && (body.id || body.slug);
     if (!id) return json({ error: 'Post ID required' }, 400);
 
+    await deletePostFromD1(context, id);
     const posts = await readPosts(context);
     const updated = posts.filter((p) => p && p.id !== id && p.slug !== id);
     const saved = await writePosts(context, updated);

@@ -5,3 +5,12 @@ pages_build_output_dir = "./dist"
 [[kv_namespaces]]
 binding = "TKA_BLOG_KV"
 id = "7c6878dfaaa749a2bf808b979a08e45e"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tka-blog-db"
+database_id = "tka-blog-db-id"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "tka-blog-images"

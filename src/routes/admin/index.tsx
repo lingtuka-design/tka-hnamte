@@ -200,15 +200,41 @@ function AdminDashboardComponent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold uppercase text-gray-700 dark:text-gray-300 mb-1">
-                Featured Image URL
+                Featured Image URL / Upload to R2
               </label>
-              <input
-                type="text"
-                placeholder="https://images.unsplash.com/..."
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="https://images.unsplash.com/..."
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500"
+                />
+                <label className="cursor-pointer bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 text-gray-800 dark:text-gray-200 text-xs font-bold px-3 py-2.5 rounded flex items-center gap-1.5 border border-gray-300 dark:border-slate-600 whitespace-nowrap">
+                  <ImageIcon className="w-4 h-4 text-blue-500" />
+                  <span>Upload R2</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      try {
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.url) setImageUrl(data.url);
+                        }
+                      } catch (err) {
+                        console.error('R2 Upload error', err);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
             </div>
 
             <div>
