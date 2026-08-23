@@ -24,8 +24,23 @@ interface Comment {
 
 function PostReadComponent() {
   const { slug } = Route.useSearch();
-  const [post, setPost] = useState<PostItem | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  // Instant 0ms synchronous initial state from local cache!
+  const [post, setPost] = useState<PostItem | null>(() => {
+    if (typeof window !== 'undefined' && slug) {
+      const stored = localStorage.getItem('tka_posts');
+      if (stored) {
+        try {
+          const posts: PostItem[] = JSON.parse(stored);
+          const found = posts.find((p) => p.slug === slug || p.id === slug);
+          if (found) return found;
+        } catch (e) {}
+      }
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState(!post);
   const [likes, setLikes] = useState(0);
   const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
