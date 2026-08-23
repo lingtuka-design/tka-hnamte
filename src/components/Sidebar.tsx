@@ -4,7 +4,19 @@ import { Facebook, Twitter, Instagram, Linkedin, Youtube, Eye } from 'lucide-rea
 import type { PostItem } from '../lib/cloudDb';
 
 export const Sidebar: React.FC = () => {
-  const [mostRead, setMostRead] = useState<PostItem[]>([]);
+  // Synchronous initial state from cached posts for instant 0ms paint!
+  const [mostRead, setMostRead] = useState<PostItem[]>(() => {
+    const stored = localStorage.getItem('tka_posts');
+    if (stored) {
+      try {
+        const posts: PostItem[] = JSON.parse(stored);
+        if (Array.isArray(posts) && posts.length > 0) {
+          return [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
 
   useEffect(() => {
     async function loadMostRead() {

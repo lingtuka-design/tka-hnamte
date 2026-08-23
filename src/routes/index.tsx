@@ -9,8 +9,18 @@ export const Route = createFileRoute('/')({
 });
 
 function HomeComponent() {
-  const [posts, setPosts] = useState<PostItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Synchronous initial state from localStorage for ZERO latency instant paint!
+  const [posts, setPosts] = useState<PostItem[]>(() => {
+    const stored = localStorage.getItem('tka_posts');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(posts.length === 0);
 
   useEffect(() => {
     async function loadFeed() {
@@ -47,7 +57,10 @@ function HomeComponent() {
         return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
       });
 
-      setPosts(merged);
+      if (merged.length > 0) {
+        setPosts(merged);
+        localStorage.setItem('tka_posts', JSON.stringify(merged));
+      }
       setLoading(false);
     }
 

@@ -6,16 +6,24 @@ export const Navbar: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('tka_theme') as 'light' | 'dark' || 'light';
+    const savedTheme = (localStorage.getItem('tka_theme') as 'light' | 'dark') || 'light';
     setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);
     localStorage.setItem('tka_theme', nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   return (
@@ -47,18 +55,18 @@ export const Navbar: React.FC = () => {
         {/* Dark / Light Mode Toggle Button */}
         <button
           onClick={toggleTheme}
-          className="absolute right-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border border-gray-300 dark:border-slate-700 hover:border-blue-500 text-gray-700 dark:text-gray-300 transition-all"
+          className="absolute right-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border border-gray-300 dark:border-slate-700 hover:border-blue-500 text-gray-700 dark:text-gray-300 transition-all bg-white dark:bg-slate-800"
           title="Toggle Dark/Light Mode"
         >
           {theme === 'light' ? (
             <>
               <Moon className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Dark</span>
+              <span>Dark Mode</span>
             </>
           ) : (
             <>
               <Sun className="w-3.5 h-3.5 text-amber-400" />
-              <span>Light</span>
+              <span>Light Mode</span>
             </>
           )}
         </button>
